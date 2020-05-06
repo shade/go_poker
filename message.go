@@ -1,0 +1,4 @@
+
+interface Packet {
+	Serialize() []byte
+}

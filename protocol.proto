@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+enum RequestType {
+    ACTION = 0;
+}
+
+message Request {
+    RequestType request_type = 0;
+}
