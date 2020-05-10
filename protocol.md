@@ -35,18 +35,16 @@ HAND_ACTION = 0x23
 
 The general message structure looks like the following.  
 
-```json
+```
 {
-	"type": <EventType>
-	"timestamp": <Integer>
-	"payload": <Object>
+	type: <EventType>
+	timestamp: <Integer> -- UNIX Timestamp
+	payload: <Object> -- The JSON payloads as defined below
 }
 ```
   
  
-## Client To Server
-
-### Sit
+## Sit
 Event `TABLE_SIT`, allows a player to sit in a table given a table ID.
 
 #### Payload
@@ -74,7 +72,4 @@ Accepting will give the user their position in the table.
 }
 ```
 
-### Stand
-
-TBD
-## Server to Client
+## Stand
