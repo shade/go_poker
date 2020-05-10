@@ -58,14 +58,15 @@ Event `TABLE_SIT`, allows a player to sit in a table given a table ID.
 ```
 
 #### Potential Responses
-**Event: TABLE_DECLINE**
+`TABLE_DECLINE`
 ```
 {
 	table_id: <String>,
 	reason: "User already sitting at table"
 }
 ```
-**Event: TABLE_ACCEPT**
+
+`TABLE_ACCEPT`
 
 Accepting will give the user their position in the table.
 ```
@@ -86,14 +87,15 @@ Event `TABLE_STAND`, allows a player to stand when they want to leave a table
 ```
 
 #### Potential Responses
-**Event: TABLE_EXIT**
+`TABLE_EXIT`
 ```
 {
 	table_id: <String>
 	balance: <Integer> - The amount of money returned to the user in chips
 }
 ```
-**Event: TABLE_DECLINE**
+
+`TABLE_DECLINE`
 ```
 {
 	table_id: <String>,
