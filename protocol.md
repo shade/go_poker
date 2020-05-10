@@ -66,6 +66,7 @@ Event `TABLE_SIT`, allows a player to sit in a table given a table ID.
 }
 ```
 **Event: TABLE_ACCEPT**
+
 Accepting will give the user their position in the table.
 ```
 {
@@ -93,7 +94,6 @@ Event `TABLE_STAND`, allows a player to stand when they want to leave a table
 }
 ```
 **Event: TABLE_DECLINE**
-Accepting will give the user their position in the table.
 ```
 {
 	table_id: <String>,
