@@ -16,10 +16,12 @@ These messages are only sent from the server to the client .
 ```
 TABLE_ACCEPT = 0x01
 TABLE_DECLINE = 0x02
-TABLE_TIMER = 0x03
-PLAYER_ACTION = 0x04
-PLAYER_SHOW = 0x05
-HAND_RESULT = 0x06
+TABLE_EXIT = 0x03
+
+TABLE_TIMER = 0x04
+PLAYER_ACTION = 0x05
+PLAYER_SHOW = 0x06
+HAND_RESULT = 0x07
 ```
 ###  Client to Server ONLY
 These messages are only sent from the client to the server.
@@ -73,3 +75,28 @@ Accepting will give the user their position in the table.
 ```
 
 ## Stand
+Event `TABLE_STAND`, allows a player to stand when they want to leave a table
+
+#### Payload
+```
+{
+	table_id: <String>
+}
+```
+
+#### Potential Responses
+**Event: TABLE_EXIT**
+```
+{
+	table_id: <String>
+	balance: <Integer> - The amount of money returned to the user in chips
+}
+```
+**Event: TABLE_DECLINE**
+Accepting will give the user their position in the table.
+```
+{
+	table_id: <String>,
+	reason: "This user was never sitting here.."
+}
+```
