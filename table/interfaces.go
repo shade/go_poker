@@ -1,5 +1,4 @@
-package interfaces
-
+package table
 
 type IDeck interface {	
 	Shuffle(seed uint32)
@@ -19,5 +18,7 @@ type IDealer interface {
 
 type ITable interface {}
 
-type IPlayer interface {}
+type IPlayer interface {
+	Send(string)
+}
 
