@@ -1,1 +1,29 @@
 syntax = "proto3";
+
+enum EventType {
+    CHAT_MSG = 128;
+    TABLE_ACCEPT = 1;
+    TABLE_DECLINE = 2;
+    TABLE_EXIT = 3;
+
+    TABLE_TIMER = 4;
+    PLAYER_ACTION = 5;
+    PLAYER_SHOW = 6;
+    HAND_RESULT = 7;
+
+    TABLE_SIT = 33;
+    TABLE_STAND = 34;
+    HAND_ACTION = 35;
+}
+
+message Packet {
+    EventType event = 1;
+    oneof payload {
+        SitEvent table_sit = 2;
+    }
+}
+
+message SitEvent {
+    string table_id = 1;
+    string user_id = 2;
+}
