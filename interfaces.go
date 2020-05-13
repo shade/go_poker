@@ -13,10 +13,6 @@ interface IDealer {
 }
 
 interface ITable {
-	CheckTable(Player player)
-	CallTable(Player player)
-	RaiseTable(Player player)
-	FoldTable(Player player)
 }
 
 interface IPlayer {}

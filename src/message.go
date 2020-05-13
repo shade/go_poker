@@ -1,4 +1,0 @@
-
-interface Packet {
-	Serialize() []byte
-}

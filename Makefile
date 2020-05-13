@@ -1,2 +1,2 @@
 all:
-	go run server.go -- -wsport=8081
+	go run main.go -- -wsport=8081
