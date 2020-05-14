@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 enum EventType {
-    CHAT_MSG = 128;
+    UNDEFINED = 0;
     TABLE_ACCEPT = 1;
     TABLE_DECLINE = 2;
     TABLE_EXIT = 3;
@@ -14,6 +14,8 @@ enum EventType {
     TABLE_SIT = 33;
     TABLE_STAND = 34;
     HAND_ACTION = 35;
+
+    CHAT_MSG = 128;
 }
 
 message Packet {
