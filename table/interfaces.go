@@ -19,6 +19,7 @@ type IDealer interface {
 type ITable interface {}
 
 type IPlayer interface {
+	GetID() string
 	Send(string)
 }
 
