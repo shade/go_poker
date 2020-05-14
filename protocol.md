@@ -54,6 +54,7 @@ Event `TABLE_SIT`, allows a player to sit in a table given a table ID.
 {
 	table_id: <String>,
 	user_identity_token: <String>
+	chips: <Integer>
 }
 ```
 
