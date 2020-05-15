@@ -10,12 +10,14 @@ This document describes the message protocol for communication between the poker
 Events are given the following values:
 ```
 CHAT_MSG = 0x80
-TABLE_SIT = 0x21
-TABLE_STAND = 0x22
 ```
+
 ###  Server to Client ONLY
 These messages are only sent from the server to the client .
 ```
+TABLE_SIT_ACK = 0x31
+TABLE_STAND_ACK = 0x32
+
 TABLE_TIMER = 0x04
 PLAYER_ACTION = 0x05
 PLAYER_SHOW = 0x06
@@ -24,6 +26,9 @@ HAND_RESULT = 0x07
 ###  Client to Server ONLY
 These messages are only sent from the client to the server.
 ```
+TABLE_SIT = 0x21
+TABLE_STAND = 0x22
+
 HAND_ACTION = 0x23
 ```
 
@@ -48,17 +53,16 @@ Event `TABLE_SIT`, allows a player to sit in a table given a table ID.
 {
 	table_id: <String>,
 	user_identity_token: <String>
-	seat_num: <Integer>
 	chips: <Integer>
 }
 ```
 
 #### Potential Responses
-`TABLE_SIT`
+`TABLE_SIT_ACK`
 ```
 {
 	table_id: <String>,
-	sat_down: <Boolean>, // value of whether player successfully sat down at seat_num
+	sat_down: <Boolean>,
 	seat_num: <Integer>
 	reason: <String>
 }
@@ -75,12 +79,12 @@ Event `TABLE_STAND`, allows a player to stand when they want to leave a table, i
 ```
 
 #### Potential Responses
-`TABLE_STAND`
+`TABLE_STAND_ACK`
 ```
 {
 	table_id: <String>
-	balance: <Integer> - The amount of money returned to the user in chips ??????????
 	left_seat: <Boolean>
+	balance: <Integer>
 	reason: <String>
 }
 ```
