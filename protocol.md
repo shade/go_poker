@@ -10,14 +10,12 @@ This document describes the message protocol for communication between the poker
 Events are given the following values:
 ```
 CHAT_MSG = 0x80
+TABLE_SIT = 0x21
+TABLE_STAND = 0x22
 ```
 ###  Server to Client ONLY
 These messages are only sent from the server to the client .
 ```
-TABLE_ACCEPT = 0x01
-TABLE_DECLINE = 0x02
-TABLE_EXIT = 0x03
-
 TABLE_TIMER = 0x04
 PLAYER_ACTION = 0x05
 PLAYER_SHOW = 0x06
@@ -26,12 +24,8 @@ HAND_RESULT = 0x07
 ###  Client to Server ONLY
 These messages are only sent from the client to the server.
 ```
-TABLE_SIT = 0x21
-TABLE_STAND = 0x22
 HAND_ACTION = 0x23
 ```
-
-
 
 ## General Message Structure
 
@@ -54,31 +48,25 @@ Event `TABLE_SIT`, allows a player to sit in a table given a table ID.
 {
 	table_id: <String>,
 	user_identity_token: <String>
+	seat_num: <Integer>
 	chips: <Integer>
 }
 ```
 
 #### Potential Responses
-`TABLE_DECLINE`
+`TABLE_SIT`
 ```
 {
 	table_id: <String>,
-	reason: "User already sitting at table"
+	sat_down: <Boolean>,
+	seat_num: <Integer>
+	reason: <String>
 }
-```
-
-`TABLE_ACCEPT`
-
-Accepting will give the user their position in the table.
-```
-{
-	table_id: <String>,
-	position: <Integer>
-}
+sat_down will hold boolean value of whether player successfully sat down at seat_num
 ```
 
 ## Stand
-Event `TABLE_STAND`, allows a player to stand when they want to leave a table
+Event `TABLE_STAND`, allows a player to stand when they want to leave a table, irrespective of seat number
 
 #### Payload
 ```
@@ -88,18 +76,12 @@ Event `TABLE_STAND`, allows a player to stand when they want to leave a table
 ```
 
 #### Potential Responses
-`TABLE_EXIT`
+`TABLE_STAND`
 ```
 {
 	table_id: <String>
-	balance: <Integer> - The amount of money returned to the user in chips
-}
-```
-
-`TABLE_DECLINE`
-```
-{
-	table_id: <String>,
-	reason: "This user was never sitting here.."
+	balance: <Integer> - The amount of money returned to the user in chips ??????????
+	left_seat: <Boolean>
+	reason: <String>
 }
 ```
