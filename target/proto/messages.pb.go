@@ -10,6 +10,9 @@ It is generated from these files:
 It has these top-level messages:
 	Packet
 	SitEvent
+	StandEvent
+	SitAck
+	StandAck
 */
 package messages
 
@@ -31,47 +34,29 @@ const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 type EventType int32
 
 const (
-	EventType_UNDEFINED     EventType = 0
-	EventType_TABLE_ACCEPT  EventType = 1
-	EventType_TABLE_DECLINE EventType = 2
-	EventType_TABLE_EXIT    EventType = 3
-	EventType_TABLE_TIMER   EventType = 4
-	EventType_PLAYER_ACTION EventType = 5
-	EventType_PLAYER_SHOW   EventType = 6
-	EventType_HAND_RESULT   EventType = 7
-	EventType_TABLE_SIT     EventType = 33
-	EventType_TABLE_STAND   EventType = 34
-	EventType_HAND_ACTION   EventType = 35
-	EventType_CHAT_MSG      EventType = 128
+	EventType_UNDEFINED       EventType = 0
+	EventType_TABLE_SIT       EventType = 33
+	EventType_TABLE_STAND     EventType = 34
+	EventType_TABLE_SIT_ACK   EventType = 49
+	EventType_TABLE_STAND_ACK EventType = 50
+	EventType_CHAT_MSG        EventType = 128
 )
 
 var EventType_name = map[int32]string{
 	0:   "UNDEFINED",
-	1:   "TABLE_ACCEPT",
-	2:   "TABLE_DECLINE",
-	3:   "TABLE_EXIT",
-	4:   "TABLE_TIMER",
-	5:   "PLAYER_ACTION",
-	6:   "PLAYER_SHOW",
-	7:   "HAND_RESULT",
 	33:  "TABLE_SIT",
 	34:  "TABLE_STAND",
-	35:  "HAND_ACTION",
+	49:  "TABLE_SIT_ACK",
+	50:  "TABLE_STAND_ACK",
 	128: "CHAT_MSG",
 }
 var EventType_value = map[string]int32{
-	"UNDEFINED":     0,
-	"TABLE_ACCEPT":  1,
-	"TABLE_DECLINE": 2,
-	"TABLE_EXIT":    3,
-	"TABLE_TIMER":   4,
-	"PLAYER_ACTION": 5,
-	"PLAYER_SHOW":   6,
-	"HAND_RESULT":   7,
-	"TABLE_SIT":     33,
-	"TABLE_STAND":   34,
-	"HAND_ACTION":   35,
-	"CHAT_MSG":      128,
+	"UNDEFINED":       0,
+	"TABLE_SIT":       33,
+	"TABLE_STAND":     34,
+	"TABLE_SIT_ACK":   49,
+	"TABLE_STAND_ACK": 50,
+	"CHAT_MSG":        128,
 }
 
 func (x EventType) String() string {
@@ -82,7 +67,10 @@ func (EventType) EnumDescriptor() ([]byte, []int) { return fileDescriptor0, []in
 type Packet struct {
 	Event EventType `protobuf:"varint,1,opt,name=event,enum=EventType" json:"event,omitempty"`
 	// Types that are valid to be assigned to Payload:
-	//	*Packet_TableSit
+	//	*Packet_Sit
+	//	*Packet_Stand
+	//	*Packet_SitAck
+	//	*Packet_StandAck
 	Payload isPacket_Payload `protobuf_oneof:"payload"`
 }
 
@@ -93,11 +81,23 @@ func (*Packet) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{0} }
 
 type isPacket_Payload interface{ isPacket_Payload() }
 
-type Packet_TableSit struct {
-	TableSit *SitEvent `protobuf:"bytes,2,opt,name=table_sit,json=tableSit,oneof"`
+type Packet_Sit struct {
+	Sit *SitEvent `protobuf:"bytes,2,opt,name=sit,oneof"`
+}
+type Packet_Stand struct {
+	Stand *StandEvent `protobuf:"bytes,3,opt,name=stand,oneof"`
+}
+type Packet_SitAck struct {
+	SitAck *SitAck `protobuf:"bytes,4,opt,name=sit_ack,json=sitAck,oneof"`
+}
+type Packet_StandAck struct {
+	StandAck *StandAck `protobuf:"bytes,5,opt,name=stand_ack,json=standAck,oneof"`
 }
 
-func (*Packet_TableSit) isPacket_Payload() {}
+func (*Packet_Sit) isPacket_Payload()      {}
+func (*Packet_Stand) isPacket_Payload()    {}
+func (*Packet_SitAck) isPacket_Payload()   {}
+func (*Packet_StandAck) isPacket_Payload() {}
 
 func (m *Packet) GetPayload() isPacket_Payload {
 	if m != nil {
@@ -113,9 +113,30 @@ func (m *Packet) GetEvent() EventType {
 	return EventType_UNDEFINED
 }
 
-func (m *Packet) GetTableSit() *SitEvent {
-	if x, ok := m.GetPayload().(*Packet_TableSit); ok {
-		return x.TableSit
+func (m *Packet) GetSit() *SitEvent {
+	if x, ok := m.GetPayload().(*Packet_Sit); ok {
+		return x.Sit
+	}
+	return nil
+}
+
+func (m *Packet) GetStand() *StandEvent {
+	if x, ok := m.GetPayload().(*Packet_Stand); ok {
+		return x.Stand
+	}
+	return nil
+}
+
+func (m *Packet) GetSitAck() *SitAck {
+	if x, ok := m.GetPayload().(*Packet_SitAck); ok {
+		return x.SitAck
+	}
+	return nil
+}
+
+func (m *Packet) GetStandAck() *StandAck {
+	if x, ok := m.GetPayload().(*Packet_StandAck); ok {
+		return x.StandAck
 	}
 	return nil
 }
@@ -123,7 +144,10 @@ func (m *Packet) GetTableSit() *SitEvent {
 // XXX_OneofFuncs is for the internal use of the proto package.
 func (*Packet) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
 	return _Packet_OneofMarshaler, _Packet_OneofUnmarshaler, _Packet_OneofSizer, []interface{}{
-		(*Packet_TableSit)(nil),
+		(*Packet_Sit)(nil),
+		(*Packet_Stand)(nil),
+		(*Packet_SitAck)(nil),
+		(*Packet_StandAck)(nil),
 	}
 }
 
@@ -131,9 +155,24 @@ func _Packet_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
 	m := msg.(*Packet)
 	// payload
 	switch x := m.Payload.(type) {
-	case *Packet_TableSit:
+	case *Packet_Sit:
 		b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.TableSit); err != nil {
+		if err := b.EncodeMessage(x.Sit); err != nil {
+			return err
+		}
+	case *Packet_Stand:
+		b.EncodeVarint(3<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.Stand); err != nil {
+			return err
+		}
+	case *Packet_SitAck:
+		b.EncodeVarint(4<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.SitAck); err != nil {
+			return err
+		}
+	case *Packet_StandAck:
+		b.EncodeVarint(5<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.StandAck); err != nil {
 			return err
 		}
 	case nil:
@@ -146,13 +185,37 @@ func _Packet_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
 func _Packet_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
 	m := msg.(*Packet)
 	switch tag {
-	case 2: // payload.table_sit
+	case 2: // payload.sit
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
 		msg := new(SitEvent)
 		err := b.DecodeMessage(msg)
-		m.Payload = &Packet_TableSit{msg}
+		m.Payload = &Packet_Sit{msg}
+		return true, err
+	case 3: // payload.stand
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(StandEvent)
+		err := b.DecodeMessage(msg)
+		m.Payload = &Packet_Stand{msg}
+		return true, err
+	case 4: // payload.sit_ack
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(SitAck)
+		err := b.DecodeMessage(msg)
+		m.Payload = &Packet_SitAck{msg}
+		return true, err
+	case 5: // payload.stand_ack
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(StandAck)
+		err := b.DecodeMessage(msg)
+		m.Payload = &Packet_StandAck{msg}
 		return true, err
 	default:
 		return false, nil
@@ -163,9 +226,24 @@ func _Packet_OneofSizer(msg proto.Message) (n int) {
 	m := msg.(*Packet)
 	// payload
 	switch x := m.Payload.(type) {
-	case *Packet_TableSit:
-		s := proto.Size(x.TableSit)
+	case *Packet_Sit:
+		s := proto.Size(x.Sit)
 		n += proto.SizeVarint(2<<3 | proto.WireBytes)
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case *Packet_Stand:
+		s := proto.Size(x.Stand)
+		n += proto.SizeVarint(3<<3 | proto.WireBytes)
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case *Packet_SitAck:
+		s := proto.Size(x.SitAck)
+		n += proto.SizeVarint(4<<3 | proto.WireBytes)
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case *Packet_StandAck:
+		s := proto.Size(x.StandAck)
+		n += proto.SizeVarint(5<<3 | proto.WireBytes)
 		n += proto.SizeVarint(uint64(s))
 		n += s
 	case nil:
@@ -176,8 +254,9 @@ func _Packet_OneofSizer(msg proto.Message) (n int) {
 }
 
 type SitEvent struct {
-	TableId string `protobuf:"bytes,1,opt,name=table_id,json=tableId" json:"table_id,omitempty"`
-	UserId  string `protobuf:"bytes,2,opt,name=user_id,json=userId" json:"user_id,omitempty"`
+	TableId           string `protobuf:"bytes,1,opt,name=table_id,json=tableId" json:"table_id,omitempty"`
+	UserIdentityToken string `protobuf:"bytes,2,opt,name=user_identity_token,json=userIdentityToken" json:"user_identity_token,omitempty"`
+	Chips             int32  `protobuf:"varint,3,opt,name=chips" json:"chips,omitempty"`
 }
 
 func (m *SitEvent) Reset()                    { *m = SitEvent{} }
@@ -192,9 +271,112 @@ func (m *SitEvent) GetTableId() string {
 	return ""
 }
 
-func (m *SitEvent) GetUserId() string {
+func (m *SitEvent) GetUserIdentityToken() string {
 	if m != nil {
-		return m.UserId
+		return m.UserIdentityToken
+	}
+	return ""
+}
+
+func (m *SitEvent) GetChips() int32 {
+	if m != nil {
+		return m.Chips
+	}
+	return 0
+}
+
+type StandEvent struct {
+	TableId string `protobuf:"bytes,1,opt,name=table_id,json=tableId" json:"table_id,omitempty"`
+}
+
+func (m *StandEvent) Reset()                    { *m = StandEvent{} }
+func (m *StandEvent) String() string            { return proto.CompactTextString(m) }
+func (*StandEvent) ProtoMessage()               {}
+func (*StandEvent) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{2} }
+
+func (m *StandEvent) GetTableId() string {
+	if m != nil {
+		return m.TableId
+	}
+	return ""
+}
+
+type SitAck struct {
+	TableId string `protobuf:"bytes,1,opt,name=table_id,json=tableId" json:"table_id,omitempty"`
+	SatDown bool   `protobuf:"varint,2,opt,name=sat_down,json=satDown" json:"sat_down,omitempty"`
+	SeatNum int32  `protobuf:"varint,3,opt,name=seat_num,json=seatNum" json:"seat_num,omitempty"`
+	Reason  string `protobuf:"bytes,4,opt,name=reason" json:"reason,omitempty"`
+}
+
+func (m *SitAck) Reset()                    { *m = SitAck{} }
+func (m *SitAck) String() string            { return proto.CompactTextString(m) }
+func (*SitAck) ProtoMessage()               {}
+func (*SitAck) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{3} }
+
+func (m *SitAck) GetTableId() string {
+	if m != nil {
+		return m.TableId
+	}
+	return ""
+}
+
+func (m *SitAck) GetSatDown() bool {
+	if m != nil {
+		return m.SatDown
+	}
+	return false
+}
+
+func (m *SitAck) GetSeatNum() int32 {
+	if m != nil {
+		return m.SeatNum
+	}
+	return 0
+}
+
+func (m *SitAck) GetReason() string {
+	if m != nil {
+		return m.Reason
+	}
+	return ""
+}
+
+type StandAck struct {
+	TableId string `protobuf:"bytes,1,opt,name=table_id,json=tableId" json:"table_id,omitempty"`
+	StoodUp bool   `protobuf:"varint,2,opt,name=stood_up,json=stoodUp" json:"stood_up,omitempty"`
+	Balance int32  `protobuf:"varint,3,opt,name=balance" json:"balance,omitempty"`
+	Reason  string `protobuf:"bytes,4,opt,name=reason" json:"reason,omitempty"`
+}
+
+func (m *StandAck) Reset()                    { *m = StandAck{} }
+func (m *StandAck) String() string            { return proto.CompactTextString(m) }
+func (*StandAck) ProtoMessage()               {}
+func (*StandAck) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{4} }
+
+func (m *StandAck) GetTableId() string {
+	if m != nil {
+		return m.TableId
+	}
+	return ""
+}
+
+func (m *StandAck) GetStoodUp() bool {
+	if m != nil {
+		return m.StoodUp
+	}
+	return false
+}
+
+func (m *StandAck) GetBalance() int32 {
+	if m != nil {
+		return m.Balance
+	}
+	return 0
+}
+
+func (m *StandAck) GetReason() string {
+	if m != nil {
+		return m.Reason
 	}
 	return ""
 }
@@ -202,31 +384,41 @@ func (m *SitEvent) GetUserId() string {
 func init() {
 	proto.RegisterType((*Packet)(nil), "Packet")
 	proto.RegisterType((*SitEvent)(nil), "SitEvent")
+	proto.RegisterType((*StandEvent)(nil), "StandEvent")
+	proto.RegisterType((*SitAck)(nil), "SitAck")
+	proto.RegisterType((*StandAck)(nil), "StandAck")
 	proto.RegisterEnum("EventType", EventType_name, EventType_value)
 }
 
 func init() { proto.RegisterFile("proto/messages.proto", fileDescriptor0) }
 
 var fileDescriptor0 = []byte{
-	// 315 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x44, 0x90, 0xc1, 0x4f, 0xfa, 0x30,
-	0x1c, 0xc5, 0x19, 0xbf, 0x1f, 0x1b, 0xfb, 0x22, 0x58, 0x1b, 0x13, 0xf1, 0x86, 0x78, 0x21, 0x1e,
-	0x30, 0xc1, 0xbb, 0x49, 0xd9, 0xaa, 0x6b, 0x32, 0x06, 0x59, 0x4b, 0xd4, 0x53, 0x33, 0x5c, 0x63,
-	0x16, 0x51, 0x16, 0x56, 0x4d, 0xb8, 0xf9, 0x4f, 0xfa, 0xff, 0x98, 0x76, 0x88, 0xc7, 0xcf, 0x7b,
-	0xef, 0xfb, 0xfa, 0x52, 0x38, 0x2d, 0xb7, 0x1b, 0xbd, 0xb9, 0x7e, 0x53, 0x55, 0x95, 0xbd, 0xa8,
-	0x6a, 0x6c, 0x71, 0x28, 0xc1, 0x5d, 0x64, 0xcf, 0xaf, 0x4a, 0xe3, 0x01, 0xb4, 0xd4, 0xa7, 0x7a,
-	0xd7, 0x7d, 0x67, 0xe0, 0x8c, 0x7a, 0x13, 0x18, 0x53, 0x43, 0x62, 0x57, 0xaa, 0xb4, 0x36, 0xf0,
-	0x08, 0x7c, 0x9d, 0xad, 0xd6, 0x4a, 0x56, 0x85, 0xee, 0x37, 0x07, 0xce, 0xa8, 0x33, 0xf1, 0xc7,
-	0xbc, 0xd0, 0x36, 0x18, 0x35, 0xd2, 0xb6, 0x75, 0x79, 0xa1, 0xa7, 0x3e, 0x78, 0x65, 0xb6, 0x5b,
-	0x6f, 0xb2, 0x7c, 0x78, 0x0b, 0xed, 0xdf, 0x08, 0x3e, 0x87, 0x3a, 0x22, 0x8b, 0xdc, 0xbe, 0xe2,
-	0xa7, 0x9e, 0x65, 0x96, 0xe3, 0x33, 0xf0, 0x3e, 0x2a, 0xb5, 0x35, 0x4e, 0xd3, 0x3a, 0xae, 0x41,
-	0x96, 0x5f, 0x7d, 0x3b, 0xe0, 0x1f, 0x96, 0xe0, 0x2e, 0xf8, 0xcb, 0x24, 0xa4, 0x77, 0x2c, 0xa1,
-	0x21, 0x6a, 0x60, 0x04, 0x47, 0x82, 0x4c, 0x63, 0x2a, 0x49, 0x10, 0xd0, 0x85, 0x40, 0x0e, 0x3e,
-	0x81, 0x6e, 0xad, 0x84, 0x34, 0x88, 0x59, 0x42, 0x51, 0x13, 0xf7, 0x00, 0x6a, 0x89, 0x3e, 0x32,
-	0x81, 0xfe, 0xe1, 0x63, 0xe8, 0xd4, 0x2c, 0xd8, 0x8c, 0xa6, 0xe8, 0xbf, 0xb9, 0x59, 0xc4, 0xe4,
-	0x89, 0xa6, 0x92, 0x04, 0x82, 0xcd, 0x13, 0xd4, 0x32, 0x99, 0xbd, 0xc4, 0xa3, 0xf9, 0x03, 0x72,
-	0x8d, 0x10, 0x91, 0x24, 0x94, 0x29, 0xe5, 0xcb, 0x58, 0x20, 0xcf, 0x2c, 0xa9, 0x5b, 0x38, 0x13,
-	0xe8, 0xe2, 0xaf, 0x94, 0x0b, 0x92, 0x84, 0x68, 0x78, 0x38, 0xd8, 0x57, 0x5e, 0xe2, 0x2e, 0xb4,
-	0x83, 0x88, 0x08, 0x39, 0xe3, 0xf7, 0xe8, 0xcb, 0x59, 0xb9, 0xf6, 0xff, 0x6f, 0x7e, 0x02, 0x00,
-	0x00, 0xff, 0xff, 0x68, 0x1e, 0x0a, 0x2a, 0x97, 0x01, 0x00, 0x00,
+	// 424 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x92, 0x4f, 0x6f, 0xd3, 0x30,
+	0x18, 0xc6, 0x1b, 0x46, 0xfe, 0xf8, 0xad, 0xca, 0x32, 0x6f, 0x42, 0xd9, 0x01, 0xa9, 0x84, 0x03,
+	0x15, 0x87, 0x20, 0xca, 0x27, 0xc8, 0xd6, 0x42, 0x2b, 0xa0, 0x42, 0x6e, 0x76, 0xb6, 0xdc, 0xc4,
+	0x82, 0x28, 0xad, 0x9d, 0xc5, 0x0e, 0x53, 0x6f, 0x7c, 0x3b, 0xbe, 0x16, 0xb2, 0x93, 0x14, 0x2e,
+	0x8c, 0x9b, 0x7f, 0xef, 0xf3, 0xc8, 0xcf, 0xfb, 0x58, 0x86, 0xab, 0xba, 0x91, 0x5a, 0xbe, 0x3d,
+	0x70, 0xa5, 0xd8, 0x37, 0xae, 0x12, 0x8b, 0xf1, 0x2f, 0x07, 0xbc, 0xaf, 0x2c, 0xaf, 0xb8, 0xc6,
+	0x53, 0x70, 0xf9, 0x0f, 0x2e, 0x74, 0xe4, 0x4c, 0x9d, 0xd9, 0xb3, 0x39, 0x24, 0x4b, 0x43, 0xd9,
+	0xb1, 0xe6, 0xa4, 0x13, 0xf0, 0x0b, 0x38, 0x53, 0xa5, 0x8e, 0x9e, 0x4c, 0x9d, 0xd9, 0x78, 0x8e,
+	0x92, 0x6d, 0xa9, 0xad, 0x65, 0x35, 0x22, 0x66, 0x8e, 0x5f, 0x81, 0xab, 0x34, 0x13, 0x45, 0x74,
+	0x66, 0x0d, 0xe3, 0x64, 0x6b, 0x68, 0xb0, 0x74, 0x1a, 0x8e, 0xc1, 0x57, 0xa5, 0xa6, 0x2c, 0xaf,
+	0xa2, 0xa7, 0xd6, 0xe6, 0x9b, 0x7b, 0xd2, 0xbc, 0x5a, 0x8d, 0x88, 0xa7, 0xec, 0x09, 0xcf, 0x00,
+	0x59, 0xb3, 0x75, 0xb9, 0x43, 0x9a, 0x99, 0x74, 0xbe, 0x40, 0xf5, 0xe7, 0x1b, 0x04, 0x7e, 0xcd,
+	0x8e, 0x7b, 0xc9, 0x8a, 0xb8, 0x82, 0x60, 0x58, 0x08, 0x5f, 0x43, 0xa0, 0xd9, 0x6e, 0xcf, 0x69,
+	0x59, 0xd8, 0x36, 0x88, 0xf8, 0x96, 0xd7, 0x05, 0x4e, 0xe0, 0xb2, 0x55, 0xbc, 0xa1, 0x65, 0xc1,
+	0x85, 0x2e, 0xf5, 0x91, 0x6a, 0x59, 0x71, 0x61, 0x3b, 0x21, 0x72, 0x61, 0xa4, 0x75, 0xaf, 0x64,
+	0x46, 0xc0, 0x57, 0xe0, 0xe6, 0xdf, 0xcb, 0x5a, 0xd9, 0x52, 0x2e, 0xe9, 0x20, 0x7e, 0x0d, 0xf0,
+	0xa7, 0xdc, 0x23, 0x71, 0xf1, 0x3d, 0x78, 0x5d, 0xbd, 0xc7, 0x76, 0xba, 0x86, 0x40, 0x31, 0x4d,
+	0x0b, 0xf9, 0xd0, 0x2d, 0x12, 0x10, 0x5f, 0x31, 0xbd, 0x90, 0x0f, 0xc2, 0x4a, 0x9c, 0x69, 0x2a,
+	0xda, 0x43, 0xbf, 0x81, 0x6f, 0x78, 0xd3, 0x1e, 0xf0, 0x73, 0xf0, 0x1a, 0xce, 0x94, 0x14, 0xf6,
+	0x21, 0x11, 0xe9, 0x29, 0x6e, 0x20, 0x18, 0xde, 0xea, 0x7f, 0xa1, 0x5a, 0xca, 0x82, 0xb6, 0xf5,
+	0x29, 0xd4, 0xf0, 0x5d, 0x8d, 0x23, 0xf0, 0x77, 0x6c, 0xcf, 0x44, 0xce, 0x87, 0xcc, 0x1e, 0xff,
+	0x95, 0xf9, 0xe6, 0x1e, 0xd0, 0xe9, 0xb7, 0xe0, 0x09, 0xa0, 0xbb, 0xcd, 0x62, 0xf9, 0x61, 0xbd,
+	0x59, 0x2e, 0xc2, 0x91, 0xc1, 0x2c, 0xbd, 0xf9, 0xbc, 0xa4, 0xdb, 0x75, 0x16, 0xbe, 0xc4, 0xe7,
+	0x30, 0xee, 0x31, 0x4b, 0x37, 0x8b, 0x30, 0xc6, 0x17, 0x30, 0x39, 0xe9, 0x34, 0xbd, 0xfd, 0x14,
+	0xbe, 0xc3, 0x97, 0x70, 0xfe, 0x97, 0xc7, 0x0e, 0xe7, 0x78, 0x02, 0xc1, 0xed, 0x2a, 0xcd, 0xe8,
+	0x97, 0xed, 0xc7, 0xf0, 0xa7, 0xb3, 0xf3, 0xec, 0x07, 0x7e, 0xff, 0x3b, 0x00, 0x00, 0xff, 0xff,
+	0x73, 0x45, 0xed, 0x19, 0xd8, 0x02, 0x00, 0x00,
 }

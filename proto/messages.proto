@@ -7,7 +7,7 @@ enum EventType {
     TABLE_STAND = 34;
 
     TABLE_SIT_ACK = 49;
-    TABLE_STAND_ACK = 49;
+    TABLE_STAND_ACK = 50;
 
     CHAT_MSG = 128;
 }
@@ -15,11 +15,11 @@ enum EventType {
 message Packet {
     EventType event = 1;
     oneof payload {
-        SitEvent table_sit = 2;
-        StandEvent table_stand = 3;
+        SitEvent sit = 2;
+        StandEvent stand = 3;
 
-        SitAck sit_resp = 4;
-        StandAck stand_resp = 5;
+        SitAck sit_ack = 4;
+        StandAck stand_ack = 5;
     }
 }
 
@@ -34,13 +34,15 @@ message StandEvent {
 }
 
 message SitAck {
-
+	string table_id = 1;
+	bool sat_down = 2;
+	int32 seat_num = 3;
+	string reason = 4;
 }
 
 message StandAck {
-
-	table_id: <String>
-	left_seat: <Boolean>
-	balance: <Integer>
-	reason: <String>
+	string table_id = 1;
+	bool stood_up = 2;
+	int32 balance = 3;
+	string reason = 4;
 }
