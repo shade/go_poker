@@ -58,11 +58,10 @@ Event `TABLE_SIT`, allows a player to sit in a table given a table ID.
 ```
 {
 	table_id: <String>,
-	sat_down: <Boolean>,
+	sat_down: <Boolean>, // value of whether player successfully sat down at seat_num
 	seat_num: <Integer>
 	reason: <String>
 }
-sat_down will hold boolean value of whether player successfully sat down at seat_num
 ```
 
 ## Stand
