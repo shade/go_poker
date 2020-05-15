@@ -2,18 +2,12 @@ syntax = "proto3";
 
 enum EventType {
     UNDEFINED = 0;
-    TABLE_ACCEPT = 1;
-    TABLE_DECLINE = 2;
-    TABLE_EXIT = 3;
-
-    TABLE_TIMER = 4;
-    PLAYER_ACTION = 5;
-    PLAYER_SHOW = 6;
-    HAND_RESULT = 7;
 
     TABLE_SIT = 33;
     TABLE_STAND = 34;
-    HAND_ACTION = 35;
+
+    TABLE_SIT_ACK = 49;
+    TABLE_STAND_ACK = 49;
 
     CHAT_MSG = 128;
 }
@@ -22,10 +16,31 @@ message Packet {
     EventType event = 1;
     oneof payload {
         SitEvent table_sit = 2;
+        StandEvent table_stand = 3;
+
+        SitAck sit_resp = 4;
+        StandAck stand_resp = 5;
     }
 }
 
 message SitEvent {
     string table_id = 1;
-    string user_id = 2;
+    string user_identity_token = 2;
+    int32 chips = 3; 
+}
+
+message StandEvent {
+    string table_id = 1;
+}
+
+message SitAck {
+
+}
+
+message StandAck {
+
+	table_id: <String>
+	left_seat: <Boolean>
+	balance: <Integer>
+	reason: <String>
 }

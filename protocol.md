@@ -83,7 +83,7 @@ Event `TABLE_STAND`, allows a player to stand when they want to leave a table, i
 ```
 {
 	table_id: <String>
-	left_seat: <Boolean>
+	stood_up: <Boolean>
 	balance: <Integer>
 	reason: <String>
 }
