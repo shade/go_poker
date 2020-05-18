@@ -23,3 +23,8 @@ type IPlayer interface {
 	Send(string)
 }
 
+type ISock interface {
+	AddConnection(w http.ResponseWriter, r *http.Request)
+	Read() []byte
+	Write(msg []byte)
+}
