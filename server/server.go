@@ -6,9 +6,9 @@ import (
 	"poker_backend/table"
 )
 
-var playerIndex = map[string]*IPlayer
+var playerIndex map[string]table.IPlayer
 
-func RunServer(ITable* table) {
+func RunServer(addr string) {
 	http.HandleFunc("/subscribe", func(w http.ResponseWriter, r *http.Request) {
 		token, ok := r.URL.Query()["token"]
 
@@ -17,13 +17,16 @@ func RunServer(ITable* table) {
 			return
 		}
 
-		player, exists := playerIndex[token]
+		player, exists := playerIndex[token[0]]
 		if !exists {
-			// Create the player
-			playerIndex[token] = table.NewPlayer(w,r)
-		} else {
-			// Add this connection to the connectionlist
-			player.GetSock().AddConnection(w, r)
-		}
+			player = table.NewPlayer(token[0])
+			playerIndex[token[0]] = player
+			
+		} 
+
+		player.GetSock().AddConnection(w, r)
 	})
+
+	// TODO: log this error too!
+	http.ListenAndServe(addr, nil)
 }

@@ -1,18 +1,20 @@
 package table
 
 import (
-	"poker_backend/msgs"
+	"poker_backend/messages"
 )
 
-type Table struct {	
+type Table struct {
+	id string
 	players []IPlayer
 
 	minBuy int
 	maxSeats int
 }
 
-func NewTable(minBuy int, maxSeats int) ITable {
+func NewTable(id string, minBuy int, maxSeats int) ITable {
 	return &Table{
+		id: id,
 		minBuy: minBuy,
 		maxSeats: maxSeats,
 	}
@@ -58,12 +60,23 @@ func (t* Table) Stand(p IPlayer) int {
 
 	// TODO: Send and broadcast stand up messages.
 	p.Send("stood up");
-	t.Broadcast();
+	// TODO: REFACTOR! MAKE THIS A FACTORY GROSS.
+	t.Broadcast(&messages.Packet{
+		Event: messages.EventType_TABLE_STAND_ACK,
+		Payload: &messages.Packet_StandAck{
+			StandAck: &messages.StandAck {
+				TableId: t.id,
+				StoodUp: true,
+				Balance: 0,
+				Reason: "",
+			},
+		},
+	});
 
 	return 1
 }
 
 
-func (t* Table) Broadcast() {
+func (t* Table) Broadcast(packet *messages.Packet) {
 	// TODO: implement
 }
