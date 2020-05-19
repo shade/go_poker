@@ -9,7 +9,7 @@ import (
 
 const (
 	HB_INTERVAL = 5 * time.Second
-	NEW_MSG_DELIMETER = '\n'
+	NEW_MSG_DELIMETER = "\n"
 	INPUT_BUFFER_SIZE = 1024
 	OUTPUT_BUFFER_SIZE = 1024
 )
@@ -56,35 +56,17 @@ func (s *Sock) read(conn *websocket.Conn, idx int64) {
 }
 
 func (s *Sock) write(conn *websocket.Conn) {
-	hb := time.NewTicker(HB_INTERVAL)
-	defer func() {
-		hb.Stop()
-	}()
 
 	for  {
 		select {
 			case msg := <- s.inQ:
-				fullMsg := string(msg)
-
-				for i := 0; i < len(s.inQ); i++ {
-					fullMsg += string(NEW_MSG_DELIMETER)
-					fullMsg += string(<-s.inQ)
-				}
-
+				fullMsg := string(msg) + NEW_MSG_DELIMETER
 				for _, conn := range s.conns {
 					err := conn.WriteMessage(websocket.TextMessage, []byte(fullMsg))
 
 					if err != nil {
 						// TODO: log this error
 					}
-				}
-
-			case <-hb.C:
-				conn.SetWriteDeadline(time.Now().Add(HB_INTERVAL))
-				err := conn.WriteMessage(websocket.PingMessage, nil)
-
-				if err != nil {
-					return
 				}
 		}
 	}
@@ -102,6 +84,7 @@ func (s *Sock) AddConnection(w http.ResponseWriter, r *http.Request) {
 	s.connCounter += 1
 
 	go s.read(conn, idx)
+	go s.write(conn)
 }
 
 func (s *Sock) Read() []byte {

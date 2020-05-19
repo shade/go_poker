@@ -1,7 +1,9 @@
 package table
 
 import (
+	"fmt"
 	"poker_backend/messages"
+	"github.com/golang/protobuf/jsonpb"
 )
 
 type Table struct {
@@ -13,16 +15,27 @@ type Table struct {
 }
 
 func NewTable(id string, minBuy int, maxSeats int) ITable {
-	return &Table{
+	t := &Table{
 		id: id,
 		minBuy: minBuy,
 		maxSeats: maxSeats,
 	}
+
+	return t
 }
 
 func (t* Table) FindSeat(p IPlayer) int {
 	if len(t.players) >= t.maxSeats {
-		p.Send("No more seats at this table")
+		p.Send(&messages.Packet{
+			Event: messages.EventType_TABLE_SIT_ACK,
+			Payload: &messages.Packet_SitAck{
+				SitAck: &messages.SitAck {
+					TableId: t.id,
+					SatDown: false, 
+					Reason: "Too many people at this table",
+				},
+			},
+		})
 	}
 
 	// Bubble insertion
@@ -40,6 +53,18 @@ func (t* Table) FindSeat(p IPlayer) int {
 	copy(t.players[(seat + 1):], t.players[seat:])
 	t.players[seat] = p
 
+	go t.watchPlayer(p)
+	p.Send(&messages.Packet{
+		Event: messages.EventType_TABLE_SIT_ACK,
+		Payload: &messages.Packet_SitAck{
+			SitAck: &messages.SitAck {
+				TableId: t.id,
+				SatDown: true,
+				SeatNum: int32(seat), 
+			},
+		},
+	})
+
 	return seat
 }
 
@@ -54,12 +79,6 @@ func (t* Table) Stand(p IPlayer) int {
 		}
 	}
 
-	// Remove player
-	t.players = append(t.players[:seat], t.players[seat+1:]...)
-
-
-	// TODO: Send and broadcast stand up messages.
-	p.Send("stood up");
 	// TODO: REFACTOR! MAKE THIS A FACTORY GROSS.
 	t.Broadcast(&messages.Packet{
 		Event: messages.EventType_TABLE_STAND_ACK,
@@ -73,9 +92,31 @@ func (t* Table) Stand(p IPlayer) int {
 		},
 	});
 
+	// Remove player
+	t.players = append(t.players[:seat], t.players[seat+1:]...)
+
 	return 1
 }
 
+func (t *Table) watchPlayer(p IPlayer) {
+	for {
+		msg := p.GetSock().Read() 
+		packet := &messages.Packet{}
+		err := jsonpb.UnmarshalString(string(msg), packet)
+		if err != nil {
+			// TODO: Log this error better
+			fmt.Println("Invalid proto receieved")
+			continue
+		}
+
+		if packet.Event == messages.EventType_TABLE_STAND {
+			t.Stand(p)
+			break
+		} else {
+			fmt.Println("Invalid event!")
+		}
+	}
+}
 
 func (t* Table) Broadcast(packet *messages.Packet) {
 	// TODO: implement

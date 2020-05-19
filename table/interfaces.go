@@ -2,6 +2,7 @@ package table
 
 import (
 	"net/http"
+	"github.com/golang/protobuf/proto"
 )
 
 type IDeck interface {	
@@ -20,11 +21,13 @@ type IDealer interface {
 	GetRiver() ICard
 }
 
-type ITable interface {}
+type ITable interface {
+	FindSeat(p IPlayer) int
+}
 
 type IPlayer interface {
 	GetID() string
-	Send(string)
+	Send(proto.Message)
 	GetSock() ISock
 }
 
