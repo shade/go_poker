@@ -6,9 +6,11 @@ import (
 	"poker_backend/table"
 )
 
-var playerIndex map[string]table.IPlayer
+
 
 func RunServer(addr string) {
+	playerIndex := map[string]table.IPlayer{}
+
 	http.HandleFunc("/subscribe", func(w http.ResponseWriter, r *http.Request) {
 		token, ok := r.URL.Query()["token"]
 

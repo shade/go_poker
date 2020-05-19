@@ -33,6 +33,7 @@ func NewSock() ISock {
 		outQ: make(chan []byte, OUTPUT_BUFFER_SIZE),
 
 		connCounter: 0,
+		conns: map[int64]*websocket.Conn{},
 	}
 }
 
