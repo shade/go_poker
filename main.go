@@ -4,6 +4,7 @@ import (
 	"flag"
 	"github.com/golang/protobuf/proto"
 	"poker_backend/table"
+	"poker_backend/server"
 )
 
 func main() {
@@ -11,4 +12,5 @@ func main() {
 	flag.Parse()
 
 	tbl := table.NewTable(1,1)
+	server.RunServer(tbl)
 }

@@ -21,6 +21,7 @@ type ITable interface {}
 type IPlayer interface {
 	GetID() string
 	Send(string)
+	GetSock() ISock
 }
 
 type ISock interface {
