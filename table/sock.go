@@ -2,6 +2,7 @@ package table
 
 import (
 	"time"
+	"net/http"
 
 	"github.com/gorilla/websocket"
 )
@@ -13,6 +14,11 @@ const (
 	OUTPUT_BUFFER_SIZE = 1024
 )
 
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+}
+
 type Sock struct {
 	outQ chan []byte
 	inQ chan []byte
@@ -23,11 +29,10 @@ type Sock struct {
 
 func NewSock() ISock {
 	return &Sock{
-		inQ: make(chan []byte, INPUT_BUFFER_SIZE)
-		outQ: make(chan []byte, OUTPUT_BUFFER_SIZE)
+		inQ: make(chan []byte, INPUT_BUFFER_SIZE),
+		outQ: make(chan []byte, OUTPUT_BUFFER_SIZE),
 
 		connCounter: 0,
-		conns: []map{}
 	}
 }
 
@@ -36,7 +41,7 @@ func (s *Sock) read(conn *websocket.Conn, idx int64) {
 		_, msg, err := conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				log.Printf("error: %v", err)
+				// TODO: log error or something
 			}
 
 			// TODO: Kill routine for this socket
@@ -45,35 +50,34 @@ func (s *Sock) read(conn *websocket.Conn, idx int64) {
 			break
 		}
 
-		outQ <- msg
+		s.outQ <- msg
 	}
 }
 
 func (s *Sock) write(conn *websocket.Conn) {
-	hb := time.NewTicker(pingPeriod)
+	hb := time.NewTicker(HB_INTERVAL)
 	defer func() {
-		ticker.Stop()
-		c.conn.Close()
+		hb.Stop()
 	}()
 
 	for  {
 		select {
-			case msg := <- inQ:
-				fullMsg = string(msg)
+			case msg := <- s.inQ:
+				fullMsg := string(msg)
 
-				for i := 0; i < len(inQ); i++ {
-					fullMsg += NEW_MSG_DELIMETER
-					fullMsg += string(<-inQ)
+				for i := 0; i < len(s.inQ); i++ {
+					fullMsg += string(NEW_MSG_DELIMETER)
+					fullMsg += string(<-s.inQ)
 				}
 
-				for _, conn := range s.conn {
-					conn.WriteMessage(websocket.TextMessage, []byte(fullMsg))
+				for _, conn := range s.conns {
+					err := conn.WriteMessage(websocket.TextMessage, []byte(fullMsg))
+
+					if err != nil {
+						// TODO: log this error
+					}
 				}
 
-				if err := w.Close(); err != nil {
-					// TODO: log error somewhere
-					return
-				}
 			case <-hb.C:
 				conn.SetWriteDeadline(time.Now().Add(HB_INTERVAL))
 				err := conn.WriteMessage(websocket.PingMessage, nil)
@@ -92,16 +96,17 @@ func (s *Sock) AddConnection(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	idx := s.connCounter++
+	idx := s.connCounter
 	s.conns[idx] = conn
+	s.connCounter += 1
 
 	go s.read(conn, idx)
 }
 
 func (s *Sock) Read() []byte {
-	return <-outQ
+	return <-s.outQ
 }
 
 func (s *Sock) Write(msg []byte) {
-	inQ <-msg
+	s.inQ <-msg
 }

@@ -38,11 +38,6 @@ func (t* Table) FindSeat(IPlayer p) int {
 	copy(t.players[(seat + 1):], t.players[seat:])
 	t.players[seat] = p
 
-	// Broadcast to all players this one is in.
-	for i := range t.players[] {
-		// TODO: construct seated player message.
-	}
-
 	return seat
 }
 

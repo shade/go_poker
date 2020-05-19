@@ -1,5 +1,9 @@
 package table
 
+import (
+	"net/http"
+)
+
 type IDeck interface {	
 	Shuffle(seed uint32)
 	GetCard(amount int)	
