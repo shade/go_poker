@@ -18,8 +18,8 @@ func NewTable(minBuy int, maxSeats int) ITable {
 	}
 }
 
-func (t* Table) FindSeat(IPlayer p) int {
-	if len(players) >= maxSeats {
+func (t* Table) FindSeat(p IPlayer) int {
+	if len(t.players) >= t.maxSeats {
 		p.Send("No more seats at this table")
 	}
 
@@ -41,7 +41,7 @@ func (t* Table) FindSeat(IPlayer p) int {
 	return seat
 }
 
-func (t* Table) Stand(IPlayer p) int {
+func (t* Table) Stand(p IPlayer) int {
 	id := p.GetID()
 	seat := -1
 
@@ -53,17 +53,17 @@ func (t* Table) Stand(IPlayer p) int {
 	}
 
 	// Remove player
-	append(t.players[:seat], t.players[seat+1:]...)
+	t.players = append(t.players[:seat], t.players[seat+1:]...)
 
 
 	// TODO: Send and broadcast stand up messages.
-	p.Send();
+	p.Send("stood up");
 	t.Broadcast();
 
-	return 
+	return 1
 }
 
 
-func (t* Table) Broadcast(msg *msgs.Msg) {
-
+func (t* Table) Broadcast() {
+	// TODO: implement
 }

@@ -1,5 +1,5 @@
 PROTO_SRC_DIR=proto
-PROTO_TARGET_DIR=$(GOPATH)/src/poker_backend/target
+PROTO_TARGET_DIR=$(GOPATH)/src/poker_backend/messages
 
 all:
 	go run main.go -- -wsport=8081
