@@ -46,11 +46,12 @@ func RunServer(addr string) {
 		if !exists {
 			player = table.NewPlayer(token[0])
 			playerIndex[token[0]] = player
+
+			player.GetSock().AddConnection(w, r)
 			go LobbyRoutine(player)
-		} 
-
-		player.GetSock().AddConnection(w, r)
-
+		} else {
+			player.GetSock().AddConnection(w, r)
+		}
 	})
 
 	// TODO: log this error too!
