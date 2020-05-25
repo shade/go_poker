@@ -12,6 +12,7 @@ type Table struct {
 
 	minBuy int
 	maxSeats int
+	bigBlind int
 }
 
 func NewTable(id string, minBuy int, maxSeats int) ITable {

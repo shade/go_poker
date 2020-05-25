@@ -51,11 +51,12 @@ message StandAck {
 }
 
 message TableState {
-    int32 min_buy = 1;
-    int32 max_seats = 2;
-    int32 big_blind = 3;
+    string table_id = 1;
+    int32 min_buy = 2;
+    int32 max_seats = 3;
+    int32 big_blind = 4;
 
-    repeated PlayerSeat seats = 4;
+    repeated PlayerSeat seats = 5;
 }
 
 message PlayerSeat {
