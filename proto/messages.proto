@@ -3,6 +3,7 @@ syntax = "proto3";
 enum EventType {
     UNDEFINED = 0;
 
+    JOIN_TABLE = 32;
     TABLE_SIT = 33;
     TABLE_STAND = 34;
 
@@ -20,6 +21,8 @@ message Packet {
 
         SitAck sit_ack = 4;
         StandAck stand_ack = 5;
+
+        TableState join_state = 6;
     }
 }
 
@@ -45,4 +48,18 @@ message StandAck {
 	bool stood_up = 2;
 	int32 balance = 3;
 	string reason = 4;
+}
+
+message TableState {
+    int32 min_buy = 1;
+    int32 max_seats = 2;
+    int32 big_blind = 3;
+
+    repeated PlayerSeat seats = 4;
+}
+
+message PlayerSeat {
+    string player = 1;
+    int32 balance = 2;
+    int32 seat_num = 3;
 }
