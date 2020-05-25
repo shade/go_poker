@@ -78,6 +78,7 @@ func (s *Sock) AddConnection(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// TODO: log errors somehow
 		fmt.Println("Error in upgrade")
+		fmt.Println(err)
 		return
 	}
 
