@@ -1,6 +1,7 @@
 package table
 
 import (
+	"fmt"
 	"time"
 	"net/http"
 
@@ -76,6 +77,7 @@ func (s *Sock) AddConnection(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		// TODO: log errors somehow
+		fmt.Println("Error in upgrade")
 		return
 	}
 
