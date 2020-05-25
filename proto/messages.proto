@@ -10,7 +10,8 @@ enum EventType {
     TABLE_SIT_ACK = 49;
     TABLE_STAND_ACK = 50;
 
-    CHAT_MSG = 128;
+    CHAT_MSG_SEND = 128;
+    CHAT_MSG_RECV = 129;
 }
 
 message Packet {
@@ -23,6 +24,9 @@ message Packet {
         StandAck stand_ack = 5;
 
         TableState join_state = 6;
+        
+        ChatMsgSend msg_send = 100;
+        ChatMsgRecv msg_recv = 101;
     }
 }
 
@@ -63,4 +67,15 @@ message PlayerSeat {
     string player = 1;
     int32 balance = 2;
     int32 seat_num = 3;
+}
+
+message ChatMsgSend {
+    string data = 1;
+}
+
+message ChatMsgRecv {
+    int32 message_id = 1;
+    string player_id = 2;
+    string data = 3;
+    int32 timestamp = 4;
 }
