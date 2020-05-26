@@ -2,6 +2,8 @@ package table
 
 import (
 	"net/http"
+	"poker_backend/messages"
+
 	"github.com/golang/protobuf/proto"
 )
 
@@ -23,12 +25,14 @@ type IDealer interface {
 
 type ITable interface {
 	FindSeat(p IPlayer) int
+	Serialize() *messages.Packet
 }
 
 type IPlayer interface {
 	GetID() string
 	Send(proto.Message)
 	GetSock() ISock
+	GetBalance() int32
 }
 
 type ISock interface {

@@ -120,5 +120,32 @@ func (t *Table) watchPlayer(p IPlayer) {
 }
 
 func (t* Table) Broadcast(packet *messages.Packet) {
-	// TODO: implement
+	for _, p := range t.players {
+		p.Send(packet)
+	}
+}
+
+func (t* Table) Serialize() *messages.Packet {
+	seats := []*messages.PlayerSeat{}
+
+	for i,p := range t.players {
+		seats = append(seats, &messages.PlayerSeat{
+			Player: p.GetID(),
+			Balance: p.GetBalance(),
+			SeatNum: int32(i),
+		})
+	}
+
+	return &messages.Packet{
+		Event: messages.EventType_TABLE_STATE,
+		Payload: &messages.Packet_JoinState{
+			JoinState: &messages.TableState{
+				TableId: t.id,
+				MinBuy: int32(t.minBuy),
+				MaxSeats: int32(t.maxSeats),
+				BigBlind: int32(t.bigBlind),
+				Seats: seats,
+			},
+		},
+	}
 }

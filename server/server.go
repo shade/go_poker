@@ -21,12 +21,15 @@ func LobbyRoutine(player table.IPlayer) {
 			fmt.Println("Invalid proto receieved")
 			continue
 		}
-
-		if packet.Event == messages.EventType_TABLE_SIT {
-			tbl.FindSeat(player)
-			break
-		} else {
-			fmt.Println("Invalid event!")
+		
+		switch packet.Event {
+			case messages.EventType_TABLE_SIT:
+				tbl.FindSeat(player)
+				return
+			case messages.EventType_JOIN_TABLE:
+				player.Send(tbl.Serialize())
+			default:
+				fmt.Println("Invalid event!")
 		}
 	}
 }

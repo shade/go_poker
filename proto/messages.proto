@@ -4,8 +4,9 @@ enum EventType {
     UNDEFINED = 0;
 
     JOIN_TABLE = 32;
-    TABLE_SIT = 33;
-    TABLE_STAND = 34;
+    TABLE_STATE = 33;
+    TABLE_SIT = 34;
+    TABLE_STAND = 35;
 
     TABLE_SIT_ACK = 49;
     TABLE_STAND_ACK = 50;

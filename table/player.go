@@ -8,6 +8,8 @@ import (
 type Player struct {
 	id string
 	sock ISock
+
+	balance int
 }
 
 func NewPlayer(id string) IPlayer {
@@ -29,4 +31,8 @@ func (p *Player) Send(msg proto.Message) {
 
 func (p *Player) GetSock() ISock {
 	return p.sock
+}
+
+func (p *Player) GetBalance() int32 {
+	return int32(p.balance)
 }
