@@ -2,6 +2,8 @@ package table
 
 import (
 	"fmt"
+	"time"
+
 	"poker_backend/messages"
 	"github.com/golang/protobuf/jsonpb"
 )
@@ -13,6 +15,8 @@ type Table struct {
 	minBuy int
 	maxSeats int
 	bigBlind int
+
+	msgCounter int32
 }
 
 func NewTable(id string, minBuy int, maxSeats int) ITable {
@@ -110,11 +114,14 @@ func (t *Table) watchPlayer(p IPlayer) {
 			continue
 		}
 
-		if packet.Event == messages.EventType_TABLE_STAND {
+		switch packet.Event {
+		case messages.EventType_TABLE_STAND:
 			t.Stand(p)
-			break
-		} else {
-			fmt.Println("Invalid event!")
+		case messages.EventType_CHAT_MSG_SEND:
+			t.RelayChat(p, packet.GetPayload().(*messages.Packet_MsgSend))
+		default:
+			fmt.Println("Invalid event")
+
 		}
 	}
 }
@@ -148,4 +155,23 @@ func (t* Table) Serialize() *messages.Packet {
 			},
 		},
 	}
+}
+
+func (t* Table) RelayChat(p IPlayer, msg *messages.Packet_MsgSend) {
+	data := msg.MsgSend.Data
+	player := p.GetID()
+
+	t.Broadcast(&messages.Packet{
+		Event: messages.EventType_CHAT_MSG_RECV,
+		Payload: &messages.Packet_MsgRecv{
+			MsgRecv: &messages.ChatMsgRecv{
+				MessageId: t.msgCounter,
+				PlayerId: player,
+				Data: data,
+				Timestamp: int32(time.Now().Unix()),
+			},
+		},
+	})
+
+	t.msgCounter += 1
 }
