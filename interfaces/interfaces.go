@@ -11,16 +11,19 @@ type IDeck interface {
 	Shuffle(seed uint32)
 	GetCard(amount int)	
 }
-type ICard interface {
 
+type ICard interface {
+	GetSuit()
+	MarshalJSON() ([]byte, error)
 }
 
 type IDealer interface {
 	GetHand(player IPlayer) [2]ICard
 
-	GetFlop() [3]ICard
-	GetTurn() ICard
-	GetRiver() ICard
+	DealTable() []ICard
+	DealFlop() [3]ICard
+	DealTurn() ICard
+	DealRiver() ICard
 }
 
 type ITable interface {
