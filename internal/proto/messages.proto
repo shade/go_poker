@@ -1,0 +1,129 @@
+syntax = "proto3";
+
+enum EventType {
+    UNDEFINED = 0;
+
+    JOIN_TABLE = 32;
+    TABLE_STATE = 33;
+    TABLE_SIT = 34;
+    TABLE_STAND = 35;
+
+    TABLE_SIT_ACK = 36;
+    TABLE_STAND_ACK = 37;
+
+    HAND = 51;
+    FLOP = 52;
+    TURN = 53;
+    RIVER = 54;
+
+    TIMER = 64;
+    ACTION = 65;
+    ACTION_ACK = 66;
+
+    CHAT_MSG_SEND = 128;
+    CHAT_MSG_RECV = 129;
+}
+
+message Packet {
+    EventType event = 1;
+    oneof payload {
+        SitEvent sit = 2;
+        StandEvent stand = 3;
+
+        SitAck sit_ack = 4;
+        StandAck stand_ack = 5;
+
+        TableState join_state = 6;
+
+        CardSet hand = 7;
+        CardSet flop = 8;
+        CardSet turn = 9;
+        CardSet river = 10;
+
+        ActionMsg action = 11;
+        ActionAck action_ack = 12;
+
+        ChatMsgSend msg_send = 100;
+        ChatMsgRecv msg_recv = 101;
+    }
+}
+
+message SitEvent {
+    string table_id = 1;
+    string user_identity_token = 2;
+    int32 chips = 3; 
+}
+
+message StandEvent {
+    string table_id = 1;
+}
+
+message SitAck {
+	string table_id = 1;
+	bool sat_down = 2;
+	int32 seat_num = 3;
+	string reason = 4;
+}
+
+message StandAck {
+	string table_id = 1;
+	bool stood_up = 2;
+	int32 balance = 3;
+	string reason = 4;
+}
+
+message TableState {
+    string table_id = 1;
+    int32 min_buy = 2;
+    int32 max_seats = 3;
+    int32 big_blind = 4;
+
+    repeated PlayerSeat seats = 5;
+}
+
+message PlayerSeat {
+    string player = 1;
+    int32 balance = 2;
+    int32 seat_num = 3;
+}
+
+message Card {
+    int32 suit = 1;
+    int32 rank = 2;
+    string display = 3;
+}
+
+message CardSet {
+    repeated Card cards = 1;
+}
+
+message ChatMsgSend {
+    string data = 1;
+}
+
+message ChatMsgRecv {
+    int32 message_id = 1;
+    string player_id = 2;
+    string data = 3;
+    int32 timestamp = 4;
+}
+
+enum ActionType {
+    UNKNOWN = 0;
+
+    CHECK = 1;
+    CALL = 2;
+    BET = 3;
+    RAISE = 4;
+    ALL_IN = 5;
+}
+
+message ActionMsg {
+    ActionType type = 1;
+    int32 chips = 2;
+}
+
+message ActionAck {
+    bool ok = 1;
+    string error = 2;
+}
