@@ -7,9 +7,9 @@ import (
     "github.com/golang/protobuf/proto"
 )
 
-type IDeck interface {    
+type IDeck interface {
     Shuffle(seed uint32)
-    GetCard(amount int)    
+    GetCard(amount int)
 }
 
 type ICard interface {

@@ -67,17 +67,17 @@ message StandEvent {
 }
 
 message SitAck {
-	string table_id = 1;
-	bool sat_down = 2;
-	int32 seat_num = 3;
-	string reason = 4;
+    string table_id = 1;
+    bool sat_down = 2;
+    int32 seat_num = 3;
+    string reason = 4;
 }
 
 message StandAck {
-	string table_id = 1;
-	bool stood_up = 2;
-	int32 balance = 3;
-	string reason = 4;
+    string table_id = 1;
+    bool stood_up = 2;
+    int32 balance = 3;
+    string reason = 4;
 }
 
 message TableState {
