@@ -1,11 +1,10 @@
-PROTO_SRC_DIR=proto
-PROTO_TARGET_DIR=$(GOPATH)/src/poker_backend/messages
+PROTO_DIR=internal/proto
 
 all:
 	go run src/main.go -- -wsport=8081
 
 build:
-	protoc $(PROTO_SRC_DIR)/messages.proto --go_out=$(PROTO_TARGET_DIR)
+	protoc  --proto_path=$(PROTO_DIR) --go_out=$(PROTO_DIR) $(PROTO_DIR)/*.proto
 
 build-docs:
 	$(info Please ensure protoc and protoc-gen-doc is installed)
@@ -14,4 +13,4 @@ build-docs:
 		--plugin=protoc-gen-doc=$(GOPATH)/bin/protoc-gen-doc \
 		--doc_out=./docs \
 		--doc_opt=markdown,proto.md \
-			./internal/proto/*.proto
+			./$(PROTO_DIR)/*.proto
