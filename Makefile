@@ -8,7 +8,7 @@ build:
 	protoc $(PROTO_SRC_DIR)/messages.proto --go_out=$(PROTO_TARGET_DIR)
 
 build-docs:
-	$(info Please ensure protoc and protoc-gen-doc is installed, you can find it here: https://github.com/pseudomuto/protoc-gen-doc)
+	$(info Please ensure protoc and protoc-gen-doc is installed)
 
 	protoc \
 		--plugin=protoc-gen-doc=$(GOPATH)/bin/protoc-gen-doc \

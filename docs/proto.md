@@ -287,7 +287,7 @@
 | Name | Number | Description |
 | ---- | ------ | ----------- |
 | UNDEFINED | 0 |  |
-| JOIN_TABLE | 32 |  |
+| JOIN_TABLE | 32 | Event used when we&#39;re join the table |
 | TABLE_STATE | 33 |  |
 | TABLE_SIT | 34 |  |
 | TABLE_STAND | 35 |  |
