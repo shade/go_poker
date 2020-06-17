@@ -1,7 +1,7 @@
 package dealer
 
 import (
-    "poker_backend/interfaces"
+    "go_poker/interfaces"
     "github.com/chehsunliu/poker"
 )
 

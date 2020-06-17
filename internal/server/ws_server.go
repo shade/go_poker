@@ -2,7 +2,7 @@ package server
 
 import (
 	"net/http"
-	"poker_backend/internal/identity"
+	"go_poker    /internal/identity"
 	"strconv"
 	"time"
 

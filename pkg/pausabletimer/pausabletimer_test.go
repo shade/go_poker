@@ -1,4 +1,4 @@
-package pausable_timer
+package pausabletimer
 
 import (
 	"testing"

@@ -4,20 +4,25 @@ import (
 	"fmt"
 	"time"
 
-	"poker_backend/messages"
+	"go_poker/messages"
 
 	"github.com/golang/protobuf/jsonpb"
 )
 
-type Table struct {
-	id      string
-	players []IPlayer
-
+type Options struct {
 	minBuy   int
 	maxSeats int
 	bigBlind int
+	shuffle  bool
+	rate     int
+}
 
+type Table struct {
+	id         string
+	players    []IPlayer
 	msgCounter int32
+	opts       *Options
+	room       interfaces.Room
 }
 
 func NewTable(id string, minBuy int, maxSeats int) ITable {
@@ -28,6 +33,15 @@ func NewTable(id string, minBuy int, maxSeats int) ITable {
 	}
 
 	return t
+}
+
+func (t *Table) Start() {
+	// Shuffle seats
+	// Pick random dealer
+	// Check for empty players and kick them out
+	// Post little and big blind
+	// Ask for action on the first player and wait
+	// Set callback to move
 }
 
 func (t *Table) FindSeat(p IPlayer) int {

@@ -1,0 +1,54 @@
+syntax = "proto3";
+package table;
+option go_package = "table";
+
+message TableState {
+    TableOptions options = 1;
+    repeated Player players = 2;
+
+    CardSet board_cards = 3;
+    int32 pot_size = 4;
+}
+
+message TableOptions {
+    // The name given to the table, must be unique.
+    string name = 1;
+    // The owner of this table, other than the admin this is the only
+    // player allowed to destroy this table.
+    string owner = 2;
+    // The minimum number of chips required to join this table.
+	int32 min_buy = 3;
+    // The maximum seats allowed at this table.
+	int32 max_seats = 4;
+    // The big blind value, the small blind will be floor(big_blind/2).
+	int32 big_blind = 5;
+    // If this is true the seats will be shuffled after the dealer is
+    // determined at the start of the game.
+	bool seat_shuffle = 6;
+    // If this is non-zero the seats will be shuffled after the specified
+    // number of rounds have passed.
+    int32 seat_shuffle_rounds = 7;
+    // Conversion to CAD; (rate chips) = $0.01 CAD.
+	int32 rate = 8;
+}
+
+message Player {
+    // The public id of the player.
+    string name = 1;
+    // The number of chips this player has currently has.
+    int32 chips = 2;
+    // The position of seat this player is currently occupying, zero indexed.
+    int32 seat_num = 3;
+}
+
+message Card {
+    // The suit of the card oneof, 's', 'h', 'd', 'c'
+    string suit = 1;
+    // The rank of the card [0, 12)
+    int32 rank = 2;
+}
+
+// Created due to the inability to have repetitions in one ofs.
+message CardSet {
+    repeated Card cards = 1;
+}

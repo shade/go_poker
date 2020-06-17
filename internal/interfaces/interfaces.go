@@ -2,10 +2,19 @@ package table
 
 import (
     "net/http"
-    "poker_backend/messages"
+    "go_poker    /messages"
 
     "github.com/golang/protobuf/proto"
 )
+
+type ICache interface {
+	Reconnect()
+	IsConnected() bool
+}
+
+type IRoom interface {
+	Broadcast(msg proto.Message) 
+}
 
 type IDeck interface {
     Shuffle(seed uint32)

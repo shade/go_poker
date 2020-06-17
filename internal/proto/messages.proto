@@ -1,3 +1,11 @@
+syntax = "proto3";
+
+package messages;
+
+option go_package = "messages";
+
+import "table.proto";
+
 /**
  * @exclude
  * Please ensure comments are updated when fields are updated
@@ -5,19 +13,18 @@
 */
 
 
-syntax = "proto3";
-
 enum EventType {
     UNDEFINED = 0;
-
-    // Event used when we're join the table
-    JOIN_TABLE = 32; 
+    // Event used when we're join the room, for chat messages
+    JOIN_ROOM = 32;
     TABLE_STATE = 33;
     TABLE_SIT = 34;
     TABLE_STAND = 35;
 
     TABLE_SIT_ACK = 36;
     TABLE_STAND_ACK = 37;
+
+    START_GAME = 38;
 
     HAND = 51;
     FLOP = 52;
@@ -41,12 +48,12 @@ message Packet {
         SitAck sit_ack = 4;
         StandAck stand_ack = 5;
 
-        TableState join_state = 6;
+        table.TableState join_state = 6;
 
-        CardSet hand = 7;
-        CardSet flop = 8;
-        CardSet turn = 9;
-        CardSet river = 10;
+        table.CardSet hand = 7;
+        table.CardSet flop = 8;
+        table.CardSet turn = 9;
+        table.CardSet river = 10;
 
         ActionMsg action = 11;
         ActionAck action_ack = 12;
@@ -80,30 +87,12 @@ message StandAck {
     string reason = 4;
 }
 
-message TableState {
-    string table_id = 1;
-    int32 min_buy = 2;
-    int32 max_seats = 3;
-    int32 big_blind = 4;
-
-    repeated PlayerSeat seats = 5;
-}
-
 message PlayerSeat {
     string player = 1;
     int32 balance = 2;
     int32 seat_num = 3;
 }
 
-message Card {
-    int32 suit = 1;
-    int32 rank = 2;
-    string display = 3;
-}
-
-message CardSet {
-    repeated Card cards = 1;
-}
 
 message ChatMsgSend {
     string data = 1;
@@ -129,9 +118,11 @@ enum ActionType {
 message ActionMsg {
     ActionType type = 1;
     int32 chips = 2;
+    int32 nonce = 3;
 }
 
 message ActionAck {
     bool ok = 1;
     string error = 2;
+    int32 nonce = 3;
 }
