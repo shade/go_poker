@@ -37,6 +37,7 @@ func (Dealer *d) DealTurn() ICard {
 func (Dealer *d) DealRiver() ICard {
     return d.deck.Draw(1)[0]
 }
+
 func (Dealer *d) GetHand(seatIdx: int) ([]poker.Card, error) {
     hand, ok := d.hands[seatIdx]
 

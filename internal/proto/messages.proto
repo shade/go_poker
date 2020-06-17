@@ -1,10 +1,9 @@
 syntax = "proto3";
 
 package messages;
-
 option go_package = "messages";
-
 import "table.proto";
+import "google/protobuf/empty.proto";
 
 /**
  * @exclude
@@ -12,11 +11,14 @@ import "table.proto";
  * comments are used to generate documentation via protoc-gen-go
 */
 
-
 enum EventType {
-    UNDEFINED = 0;
-    // Event used when we're join the room, for chat messages
+    UNKNOWN_EVENT = 0;
+    PING = 1;
+    PONG = 2;
+    // Event used when we're joining the game
     JOIN_ROOM = 32;
+
+    // Used when emiting the state of the current table.
     TABLE_STATE = 33;
     TABLE_SIT = 34;
     TABLE_STAND = 35;
@@ -25,8 +27,9 @@ enum EventType {
     TABLE_STAND_ACK = 37;
 
     START_GAME = 38;
+    END_GAME = 39;
 
-    HAND = 51;
+    PREFLOP_HAND = 51;
     FLOP = 52;
     TURN = 53;
     RIVER = 54;
@@ -41,26 +44,28 @@ enum EventType {
 
 message Packet {
     EventType event = 1;
-    oneof payload {
-        SitEvent sit = 2;
-        StandEvent stand = 3;
 
-        SitAck sit_ack = 4;
-        StandAck stand_ack = 5;
+    SitEvent sit = 2;
+    StandEvent stand = 3;
 
-        table.TableState join_state = 6;
+    SitAck sit_ack = 4;
+    StandAck stand_ack = 5;
 
-        table.CardSet hand = 7;
-        table.CardSet flop = 8;
-        table.CardSet turn = 9;
-        table.CardSet river = 10;
+    table.Table join_state = 6;
 
-        ActionMsg action = 11;
-        ActionAck action_ack = 12;
+    table.CardSet hand = 7;
+    table.CardSet flop = 8;
+    table.CardSet turn = 9;
+    table.CardSet river = 10;
 
-        ChatMsgSend msg_send = 100;
-        ChatMsgRecv msg_recv = 101;
-    }
+    ActionMsg action = 11;
+    ActionAck action_ack = 12;
+
+    ChatMsgSend msg_send = 100;
+    ChatMsgRecv msg_recv = 101;
+
+    google.protobuf.Empty empty = 254;
+
 }
 
 message SitEvent {
@@ -93,7 +98,6 @@ message PlayerSeat {
     int32 seat_num = 3;
 }
 
-
 message ChatMsgSend {
     string data = 1;
 }
@@ -108,11 +112,10 @@ message ChatMsgRecv {
 enum ActionType {
     UNKNOWN = 0;
 
-    CHECK = 1;
+    FOLD = 1;
     CALL = 2;
-    BET = 3;
-    RAISE = 4;
-    ALL_IN = 5;
+    RAISE = 3;
+    ALL_IN = 4;
 }
 
 message ActionMsg {

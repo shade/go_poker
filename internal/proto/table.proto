@@ -1,13 +1,22 @@
 syntax = "proto3";
 package table;
-option go_package = "table";
+option go_package = "messages";
 
-message TableState {
+message Table {
+    // The set of options used to create this table.
     TableOptions options = 1;
+    // The serialized list of players for this table.
     repeated Player players = 2;
 
+    // The set of cards currently on the table. 
     CardSet board_cards = 3;
+    // The number of chips in the pot.
     int32 pot_size = 4;
+
+    // The seat number of the player with the button.
+    int32 button_seat = 5;
+    // The seat number of the player who is to act.
+    int32 action_seat = 6;
 }
 
 message TableOptions {
@@ -17,34 +26,51 @@ message TableOptions {
     // player allowed to destroy this table.
     string owner = 2;
     // The minimum number of chips required to join this table.
-	int32 min_buy = 3;
+    uint64 min_buy = 3;
     // The maximum seats allowed at this table.
-	int32 max_seats = 4;
+    uint64 max_seats = 4;
     // The big blind value, the small blind will be floor(big_blind/2).
-	int32 big_blind = 5;
+    uint64 big_blind = 5;
     // If this is true the seats will be shuffled after the dealer is
     // determined at the start of the game.
-	bool seat_shuffle = 6;
+    bool seat_shuffle = 6;
     // If this is non-zero the seats will be shuffled after the specified
     // number of rounds have passed.
-    int32 seat_shuffle_rounds = 7;
+    uint64 seat_shuffle_rounds = 7;
     // Conversion to CAD; (rate chips) = $0.01 CAD.
-	int32 rate = 8;
+    uint64 rate = 8;
+    // Number of seconds to wait after some one goes bust, to rebuy. 
+    uint64 busted_rebuy_time = 9;
+    // Number of seconds to wait between rounds.
+    uint64 round_delay = 10;
+    // The amount of time to wait before a hand action times out.
+    uint64 action_timeout = 11; 
+}
+
+enum PlayerState {
+    PENDING = 0;
+    FOLD = 1;
+    CHECKED = 2;
+    RAISED = 3;
+    CALLED = 4;
+    ALL_IN = 5;
 }
 
 message Player {
     // The public id of the player.
     string name = 1;
     // The number of chips this player has currently has.
-    int32 chips = 2;
+    int64 balance = 2;
+    // The current player state.
+    PlayerState state = 3;
     // The position of seat this player is currently occupying, zero indexed.
-    int32 seat_num = 3;
+    int32 seat_num = 4;
 }
 
 message Card {
     // The suit of the card oneof, 's', 'h', 'd', 'c'
     string suit = 1;
-    // The rank of the card [0, 12)
+    // The rank of the card [0, 12]
     int32 rank = 2;
 }
 

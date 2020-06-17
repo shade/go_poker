@@ -3,36 +3,40 @@
 
 ## Table of Contents
 
-- [internal/proto/messages.proto](#internal/proto/messages.proto)
-    - [ActionAck](#.ActionAck)
-    - [ActionMsg](#.ActionMsg)
-    - [Card](#.Card)
-    - [CardSet](#.CardSet)
-    - [ChatMsgRecv](#.ChatMsgRecv)
-    - [ChatMsgSend](#.ChatMsgSend)
-    - [Packet](#.Packet)
-    - [PlayerSeat](#.PlayerSeat)
-    - [SitAck](#.SitAck)
-    - [SitEvent](#.SitEvent)
-    - [StandAck](#.StandAck)
-    - [StandEvent](#.StandEvent)
-    - [TableState](#.TableState)
+- [messages.proto](#messages.proto)
+    - [ActionAck](#messages.ActionAck)
+    - [ActionMsg](#messages.ActionMsg)
+    - [ChatMsgRecv](#messages.ChatMsgRecv)
+    - [ChatMsgSend](#messages.ChatMsgSend)
+    - [Packet](#messages.Packet)
+    - [PlayerSeat](#messages.PlayerSeat)
+    - [SitAck](#messages.SitAck)
+    - [SitEvent](#messages.SitEvent)
+    - [StandAck](#messages.StandAck)
+    - [StandEvent](#messages.StandEvent)
   
-    - [ActionType](#.ActionType)
-    - [EventType](#.EventType)
+    - [ActionType](#messages.ActionType)
+    - [EventType](#messages.EventType)
+  
+- [table.proto](#table.proto)
+    - [Card](#table.Card)
+    - [CardSet](#table.CardSet)
+    - [Player](#table.Player)
+    - [TableOptions](#table.TableOptions)
+    - [TableState](#table.TableState)
   
 - [Scalar Value Types](#scalar-value-types)
 
 
 
-<a name="internal/proto/messages.proto"></a>
+<a name="messages.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## internal/proto/messages.proto
+## messages.proto
 
 
 
-<a name=".ActionAck"></a>
+<a name="messages.ActionAck"></a>
 
 ### ActionAck
 
@@ -42,13 +46,14 @@
 | ----- | ---- | ----- | ----------- |
 | ok | [bool](#bool) |  |  |
 | error | [string](#string) |  |  |
+| nonce | [int32](#int32) |  |  |
 
 
 
 
 
 
-<a name=".ActionMsg"></a>
+<a name="messages.ActionMsg"></a>
 
 ### ActionMsg
 
@@ -56,47 +61,16 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| type | [ActionType](#ActionType) |  |  |
+| type | [ActionType](#messages.ActionType) |  |  |
 | chips | [int32](#int32) |  |  |
+| nonce | [int32](#int32) |  |  |
 
 
 
 
 
 
-<a name=".Card"></a>
-
-### Card
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| suit | [int32](#int32) |  |  |
-| rank | [int32](#int32) |  |  |
-| display | [string](#string) |  |  |
-
-
-
-
-
-
-<a name=".CardSet"></a>
-
-### CardSet
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| cards | [Card](#Card) | repeated |  |
-
-
-
-
-
-
-<a name=".ChatMsgRecv"></a>
+<a name="messages.ChatMsgRecv"></a>
 
 ### ChatMsgRecv
 
@@ -114,7 +88,7 @@
 
 
 
-<a name=".ChatMsgSend"></a>
+<a name="messages.ChatMsgSend"></a>
 
 ### ChatMsgSend
 
@@ -129,7 +103,7 @@
 
 
 
-<a name=".Packet"></a>
+<a name="messages.Packet"></a>
 
 ### Packet
 
@@ -137,27 +111,27 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| event | [EventType](#EventType) |  |  |
-| sit | [SitEvent](#SitEvent) |  |  |
-| stand | [StandEvent](#StandEvent) |  |  |
-| sit_ack | [SitAck](#SitAck) |  |  |
-| stand_ack | [StandAck](#StandAck) |  |  |
-| join_state | [TableState](#TableState) |  |  |
-| hand | [CardSet](#CardSet) |  |  |
-| flop | [CardSet](#CardSet) |  |  |
-| turn | [CardSet](#CardSet) |  |  |
-| river | [CardSet](#CardSet) |  |  |
-| action | [ActionMsg](#ActionMsg) |  |  |
-| action_ack | [ActionAck](#ActionAck) |  |  |
-| msg_send | [ChatMsgSend](#ChatMsgSend) |  |  |
-| msg_recv | [ChatMsgRecv](#ChatMsgRecv) |  |  |
+| event | [EventType](#messages.EventType) |  |  |
+| sit | [SitEvent](#messages.SitEvent) |  |  |
+| stand | [StandEvent](#messages.StandEvent) |  |  |
+| sit_ack | [SitAck](#messages.SitAck) |  |  |
+| stand_ack | [StandAck](#messages.StandAck) |  |  |
+| join_state | [table.TableState](#table.TableState) |  |  |
+| hand | [table.CardSet](#table.CardSet) |  |  |
+| flop | [table.CardSet](#table.CardSet) |  |  |
+| turn | [table.CardSet](#table.CardSet) |  |  |
+| river | [table.CardSet](#table.CardSet) |  |  |
+| action | [ActionMsg](#messages.ActionMsg) |  |  |
+| action_ack | [ActionAck](#messages.ActionAck) |  |  |
+| msg_send | [ChatMsgSend](#messages.ChatMsgSend) |  |  |
+| msg_recv | [ChatMsgRecv](#messages.ChatMsgRecv) |  |  |
 
 
 
 
 
 
-<a name=".PlayerSeat"></a>
+<a name="messages.PlayerSeat"></a>
 
 ### PlayerSeat
 
@@ -174,7 +148,7 @@
 
 
 
-<a name=".SitAck"></a>
+<a name="messages.SitAck"></a>
 
 ### SitAck
 
@@ -192,7 +166,7 @@
 
 
 
-<a name=".SitEvent"></a>
+<a name="messages.SitEvent"></a>
 
 ### SitEvent
 
@@ -209,7 +183,7 @@
 
 
 
-<a name=".StandAck"></a>
+<a name="messages.StandAck"></a>
 
 ### StandAck
 
@@ -227,7 +201,7 @@
 
 
 
-<a name=".StandEvent"></a>
+<a name="messages.StandEvent"></a>
 
 ### StandEvent
 
@@ -241,29 +215,10 @@
 
 
 
-
-<a name=".TableState"></a>
-
-### TableState
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| table_id | [string](#string) |  |  |
-| min_buy | [int32](#int32) |  |  |
-| max_seats | [int32](#int32) |  |  |
-| big_blind | [int32](#int32) |  |  |
-| seats | [PlayerSeat](#PlayerSeat) | repeated |  |
-
-
-
-
-
  
 
 
-<a name=".ActionType"></a>
+<a name="messages.ActionType"></a>
 
 ### ActionType
 
@@ -279,7 +234,7 @@
 
 
 
-<a name=".EventType"></a>
+<a name="messages.EventType"></a>
 
 ### EventType
 
@@ -287,12 +242,13 @@
 | Name | Number | Description |
 | ---- | ------ | ----------- |
 | UNDEFINED | 0 |  |
-| JOIN_TABLE | 32 | Event used when we&#39;re join the table |
+| JOIN_ROOM | 32 | Event used when we&#39;re join the room, for chat messages |
 | TABLE_STATE | 33 |  |
 | TABLE_SIT | 34 |  |
 | TABLE_STAND | 35 |  |
 | TABLE_SIT_ACK | 36 |  |
 | TABLE_STAND_ACK | 37 |  |
+| START_GAME | 38 |  |
 | HAND | 51 |  |
 | FLOP | 52 |  |
 | TURN | 53 |  |
@@ -303,6 +259,110 @@
 | CHAT_MSG_SEND | 128 |  |
 | CHAT_MSG_RECV | 129 |  |
 
+
+ 
+
+ 
+
+ 
+
+
+
+<a name="table.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## table.proto
+
+
+
+<a name="table.Card"></a>
+
+### Card
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| suit | [string](#string) |  | The suit of the card oneof, &#39;s&#39;, &#39;h&#39;, &#39;d&#39;, &#39;c&#39; |
+| rank | [int32](#int32) |  | The rank of the card [0, 12) |
+
+
+
+
+
+
+<a name="table.CardSet"></a>
+
+### CardSet
+Created due to the inability to have repetitions in one ofs.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| cards | [Card](#table.Card) | repeated |  |
+
+
+
+
+
+
+<a name="table.Player"></a>
+
+### Player
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| name | [string](#string) |  | The public id of the player. |
+| chips | [int32](#int32) |  | The number of chips this player has currently has. |
+| seat_num | [int32](#int32) |  | The position of seat this player is currently occupying, zero indexed. |
+
+
+
+
+
+
+<a name="table.TableOptions"></a>
+
+### TableOptions
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| name | [string](#string) |  | The name given to the table, must be unique. |
+| owner | [string](#string) |  | The owner of this table, other than the admin this is the only player allowed to destroy this table. |
+| min_buy | [int32](#int32) |  | The minimum number of chips required to join this table. |
+| max_seats | [int32](#int32) |  | The maximum seats allowed at this table. |
+| big_blind | [int32](#int32) |  | The big blind value, the small blind will be floor(big_blind/2). |
+| seat_shuffle | [bool](#bool) |  | If this is true the seats will be shuffled after the dealer is determined at the start of the game. |
+| seat_shuffle_rounds | [int32](#int32) |  | If this is non-zero the seats will be shuffled after the specified number of rounds have passed. |
+| rate | [int32](#int32) |  | Conversion to CAD; (rate chips) = $0.01 CAD. |
+
+
+
+
+
+
+<a name="table.TableState"></a>
+
+### TableState
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| options | [TableOptions](#table.TableOptions) |  |  |
+| players | [Player](#table.Player) | repeated |  |
+| board_cards | [CardSet](#table.CardSet) |  |  |
+| pot_size | [int32](#int32) |  |  |
+
+
+
+
+
+ 
 
  
 
