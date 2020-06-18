@@ -71,8 +71,8 @@ func NewSock() *Sock {
 func (s *Sock) read(conn *SocketConn) {
 	for {
 		_, msgBytes, err := conn.ReadMessage()
-
 		if err != nil {
+			fmt.Println("Invalid websocket reaD!")
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				// TODO: log error or something
 			}
@@ -92,6 +92,7 @@ func (s *Sock) read(conn *SocketConn) {
 		}
 
 		if parseErr != nil {
+			fmt.Println("Invalid proto!")
 			// TODO: handle /log error
 		}
 
@@ -123,11 +124,12 @@ func (s *Sock) write(conn *SocketConn) {
 
 func (s *Sock) AddConnection(w http.ResponseWriter, r *http.Request) {
 	formatArr, ok := r.URL.Query()["format"]
-	format := formatArr[0]
-
+	var format string
 	// Default to JSON
 	if !ok {
 		format = "json"
+	} else {
+		format = formatArr[0]
 	}
 
 	conn, err := upgrader.Upgrade(w, r, nil)
