@@ -11,5 +11,5 @@ type IQueue interface {
 	Push(key QueueKey, value QueueValue)
 
 	// Attempts to reconnect returns true if succssful
-	AttemptReconnect() bool
+	Reconnect() bool
 }
