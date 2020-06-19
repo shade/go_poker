@@ -29,5 +29,5 @@ deps:
 	$(GOGET) -d ./...
 
 
-id_server:
-	go run ./cmd/id_server.go
+room_server:
+	go run ./cmd/room_server.go

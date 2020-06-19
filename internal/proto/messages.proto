@@ -44,27 +44,28 @@ enum EventType {
 
 message Packet {
     EventType event = 1;
+    oneof payload {
+        SitEvent sit = 2;
+        StandEvent stand = 3;
 
-    SitEvent sit = 2;
-    StandEvent stand = 3;
+        SitAck sit_ack = 4;
+        StandAck stand_ack = 5;
 
-    SitAck sit_ack = 4;
-    StandAck stand_ack = 5;
+        table.Table join_state = 6;
 
-    table.Table join_state = 6;
+        table.CardSet hand = 7;
+        table.CardSet flop = 8;
+        table.CardSet turn = 9;
+        table.CardSet river = 10;
 
-    table.CardSet hand = 7;
-    table.CardSet flop = 8;
-    table.CardSet turn = 9;
-    table.CardSet river = 10;
+        ActionMsg action = 11;
+        ActionAck action_ack = 12;
 
-    ActionMsg action = 11;
-    ActionAck action_ack = 12;
+        ChatMsgSend msg_send = 100;
+        ChatMsgRecv msg_recv = 101;
 
-    ChatMsgSend msg_send = 100;
-    ChatMsgRecv msg_recv = 101;
-
-    google.protobuf.Empty empty = 254;
+        google.protobuf.Empty empty = 254;
+    }
 
 }
 

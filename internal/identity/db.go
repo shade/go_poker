@@ -1,26 +1,29 @@
 package identity
 
-import (
-	"log"
-	"os"
-)
+type DBKey string
 
-type DB struct {
-	file *os.File
-	primary
+type Record struct {
+	Name         string `json:"name"`
+	Username     string `json:"username"`
+	Password     string `json:"password",store:"false"`
+	PasswordHash string `json:"password_hash"`
 }
 
-func NewDB(path string) {
-	file, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		log.Fatal(err)
-	}
+func (r Record) PrimaryKey() DBKey {
+	return DBKey(r.Username)
+}
 
-	return DB{
-		file,
+func (r Record) ToCSVRecord() []string {
+	return []string{
+		r.Name,
+		r.Username,
+		r.PasswordHash,
 	}
 }
 
-func Get(path) * {
-
+// Interface for the Identity DB.
+type IIDB interface {
+	Get(key DBKey) (*Record, error)
+	Insert(record *Record) error
+	Delete(key DBKey)
 }

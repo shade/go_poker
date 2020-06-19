@@ -68,9 +68,9 @@ message Player {
 }
 
 message Card {
-    // The suit of the card oneof, 's', 'h', 'd', 'c'
+    // The suit of the card oneof: 's', 'h', 'd', 'c'.
     string suit = 1;
-    // The rank of the card [0, 12]
+    // The rank of the card [0, 12].
     int32 rank = 2;
 }
 

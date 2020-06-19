@@ -1,24 +1,43 @@
 package identity
 
-type Record struct {
-	Name         string `json:"name"`
-	Username     string `json:"username"`
-	Password     string `json:"password",store:"false"`
-	PasswordHash string `json:"password_hash"`
-}
+import (
+	"errors"
+	"net/http"
+)
 
-type IdentityGenerator struct {
-	db *IdentityDB
+type IDGen struct {
+	db     IIDB
 	secret string
 }
 
-func (i *IdentityGenerator) ValidateRecord(r *Record) {
-	// Ensure no user with same username in the db
-	if db.Get(r.Username) != nil {
-		return nil, errors.New()
+func NewIDGen(db IIDB, secret string) *IDGen {
+	return &IDGen{
+		db:     db,
+		secret: secret,
 	}
-	
-	// 
 }
 
-func (i *IdentityGenerator) 
+func (i *IDGen) ValidateRecord(r *Record) (bool, error) {
+	// Ensure no user with same username in the db
+
+	if record, _ := i.db.Get(DBKey(r.Username)); record != nil {
+		return false, errors.New("User already exists in DB")
+	}
+
+	return true, nil
+}
+
+func (i *IDGen) IsValidToken(token string) bool {
+	return true
+}
+
+func (i *IDGen) CreateToken(username string, password string) string {
+	return ""
+}
+
+func (i *IDGen) TokenHandler(w http.ResponseWriter, r *http.Request) {
+
+}
+func (i *IDGen) IDHandler(w http.ResponseWriter, r *http.Request) {
+
+}
