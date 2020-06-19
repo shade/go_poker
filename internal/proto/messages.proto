@@ -69,14 +69,10 @@ message Packet {
 }
 
 message SitEvent {
-    string table_id = 1;
-    string user_identity_token = 2;
     int32 chips = 3; 
 }
 
-message StandEvent {
-    string table_id = 1;
-}
+message StandEvent {}
 
 message SitAck {
     string table_id = 1;
@@ -104,7 +100,7 @@ message ChatMsgSend {
 
 message ChatMsgRecv {
     int32 message_id = 1;
-    string player_id = 2;
+    string user_id = 2;
     string data = 3;
     int32 timestamp = 4;
 }

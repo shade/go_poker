@@ -1,4 +1,4 @@
-package room
+package user
 
 import (
 	msgpb "go_poker/internal/proto"
@@ -18,8 +18,8 @@ type User struct {
 
 func NewUser(id string) IUser {
 	return &User{
-		NewSock()
-		id:   id,
+		NewSock(),
+		id: id,
 	}
 }
 

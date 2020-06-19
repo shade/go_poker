@@ -135,3 +135,13 @@ func (t *Table) MoveAction(p IPlayer) {
 		t.timer.Reset()
 	}
 }
+
+func (t *Table) IsValidBuyin(amount int64) bool {
+	if amount < t.opts.GetMinBuy() {
+		return false
+	}
+
+	if amount >= t.opts.GetMaxBuy() {
+		return false
+	}
+}
