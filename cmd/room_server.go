@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	filedb := identity.NewFileDB("./hi.csv")
+	filedb := identity.NewFileDB("./login.csv")
 	id := identity.NewIDGen(filedb, "lol")
 
 	server.Run(":8080", id)

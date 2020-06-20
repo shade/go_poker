@@ -10,7 +10,7 @@ all:
 	$(GORUN) src/main.go -- -wsport=8081
 
 test:
-	$(GOTEST) ./pkg/...  -count=1
+	$(GOTEST) ./internal/identity/...
 
 build:
 	protoc  --proto_path=$(PROTO_DIR) --go_out=$(PROTO_DIR) $(PROTO_DIR)/*.proto

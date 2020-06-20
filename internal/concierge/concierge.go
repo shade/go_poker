@@ -2,23 +2,26 @@
 package concierge
 
 import (
+	"go_poker/internal/identity"
 	"go_poker/internal/room"
 	"go_poker/internal/queue"
 	"net/http"
 )
 
 type Concierge struct {
+	_IDGen *identity.IDGen 
 	roomMap map[string]*room.Room
 	queue queue.IQueue
 }
 
-func NewConcierge(queue queue.IQueue) *Concierge {
+func NewConcierge(IDGen *identity.IDGen, queue queue.IQueue) *Concierge {
 	c := &Concierge{
+		_IDGen: IDGen,
 		roomMap: map[string]{},
 		queue: queue,
 	}
 
-	c.Poll()
+	go c.Poll()
 	return c
 }
 
@@ -39,11 +42,11 @@ func (c *Concierge) Poll() {
 
 
 
-		c.CreateTable(value)
+		c.createRoom(value)
 	}
 }
 
-func (c *Concierge) CreateRoom(opts *msgpb.TableOptions) {
+func (c *Concierge) createRoom(opts *msgpb.TableOptions) {
 	// Create the room and update the room map
 	room := room.NewRoom(opts)
 
@@ -61,6 +64,16 @@ func (c *Concierge) Resync() {
 }
 
 func (c *Concierge) HandleConnection(w http.ResponseWriter, r *http.Request) {
+	auth := r.Header.Get(AUTH_HEADER)
+
+	if !strings.HasPrefix(auth, BEARER_SCHEMA) {
+		// TODO handle error.
+
+		return
+	}
+
+	token := auth[len(BEARER_SCHEMA):]
+	
 	// Find the user responsible for this socket
 	userIds, ok := r.URL.Query()["userId"]
 
@@ -72,6 +85,7 @@ func (c *Concierge) HandleConnection(w http.ResponseWriter, r *http.Request) {
 	if len(splitToken) != 2 {
 		// TODO: instant end.
 	}
+
 	token = strings.TrimSpace(splitToken[1])
 
 	// Validate their token

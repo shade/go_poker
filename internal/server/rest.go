@@ -13,10 +13,11 @@ func Run(address string, id *identity.IDGen) {
 	r := mux.NewRouter()
 
 	s := r.PathPrefix("/api/v1").Subrouter()
-	s.HandleFunc("/identity", id.IDHandler).Methods("POST")
-	s.HandleFunc("/identity/token", id.TokenHandler).Methods("GET")
+	s.HandleFunc("/users", id.IDHandler).Methods("POST")
+	s.HandleFunc("/users/{username}/token", id.TokenHandler).Methods("POST")
+
 	s.HandleFunc("/tables", fetchTables).Methods("GET")
-	s.HandleFunc("/table", createTables).Methods("POST")
+	s.HandleFunc("/tables", createTables).Methods("POST")
 
 	srv := &http.Server{
 		Addr: address,
@@ -28,7 +29,6 @@ func Run(address string, id *identity.IDGen) {
 	}
 
 	log.Fatal(srv.ListenAndServe())
-
 }
 
 func fetchTables(w http.ResponseWriter, r *http.Request) {
