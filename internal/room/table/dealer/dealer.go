@@ -27,7 +27,7 @@ func (Dealer *d) DealTable(seats: []int) {
 }
 
 func (Dealer *d) DealFlop() [3]ICard {
-    return d.deck.Draw(3)poker.Card
+    return d.deck.Draw(3)
 }
 
 func (Dealer *d) DealTurn() ICard {

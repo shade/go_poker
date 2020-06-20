@@ -32,7 +32,8 @@ func Run(address string, id *identity.IDGen) {
 }
 
 func fetchTables(w http.ResponseWriter, r *http.Request) {
-
+	//
+	//
 }
 
 func createTables(w http.ResponseWriter, r *http.Request) {

@@ -1,22 +1,38 @@
 package table
 
 import (
+	"container/ring"
 	msgpb "go_poker/internal/proto"
 	"math/rand"
 )
 
-type Table struct {
-	id             string
-	pendingPlayers []IPlayer
-	players        []IPlayer
-	msgCounter     int32
-	opts           *msgpb.TableOptions
-	room           interfaces.Room
+type RoundState int
 
-	handCount int32
-	buttonIdx int32
-	actionIdx int32
-	startIdx  int32
+const (
+	PREFLOP  = iota
+	POSTFLOP = iota
+	TURN     = iota
+	RIVER    = iota
+)
+
+type Table struct {
+	id      string
+	pending []IPlayer
+	opts    *msgpb.TableOptions
+	room    interfaces.Room
+
+	roundState RoundState
+	handCount  int32
+
+	// Pointer on the player that has the lowest seat number.
+	players *ring.Ring
+
+	// Pointer on the player that holds the button.
+	button *ring.Ring
+	// Pointer on the player that currently has the action.
+	action *ring.Ring
+	// Pointer on the player that is the last to make an aggressive move.
+	aggressor *ring.Ring
 }
 
 func NewTable() ITable {
@@ -35,25 +51,57 @@ func (t *Table) Start() {
 }
 
 func (t *Table) StartRound() {
-	// Remove all empty balance players
+	t.roundState = PREFLOP
+
 	t.KickBusted()
-	// Move dealer chip once
 	t.MoveButton()
-	// Post little and big blind
 	t.PostBlinds()
-	// Ask for action on the first player and wait
+	t.DealCards()
 	t.AskAction()
 }
 
+func (t *Table) NextRound() {
+	switch t.state {
+	case PREFLOP:
+		t.dealer.DealFlop()
+		t.AskAction()
+	case POSTFLOP:
+		t.dealer.DealTurn()
+		t.AskAction()
+	case TURN:
+		t.dealer.DealRiver()
+		t.AskAction()
+	case RIVER:
+		t.Showdown()
+	}
+}
+
+func (t *Table) Showdown() {
+	t.aggressor.Do(func(p interface{}) {
+		player := p.(IPlayer)
+
+		if player.IsInHand() {
+			player.ShowCards()
+		}
+	})
+}
+
+func (t *Table) KickPlayer(p IPlayer) {
+	t.Broadcast()
+}
+
 func (t *Table) KickBusted() {
+	kicked := []IPlayer{}
 	for i := 0; i < len(t.players); i++ {
 		if t.players[i].IsBusted() {
-			// Broadcast the kick!
-			t.players[i].Kick()
-			// Remove from the slice
-			t.players = append(t.players[:i], t.players[i+1:]...)
-			i -= 1
+			kicked = append(kicked, t.players[i])
 		}
+	}
+
+	// Seconds pass is done in case KickPlayer modifies
+	// seating of players.
+	for _, p := range kicked {
+		t.KickPlayer(p, msgpb.KickReason_BUSTED)
 	}
 }
 

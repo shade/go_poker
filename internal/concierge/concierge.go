@@ -4,21 +4,21 @@ package concierge
 import (
 	"go_poker/internal/identity"
 	"go_poker/internal/room"
-	"go_poker/internal/queue"
+	"go_poker/internal/cache"
 	"net/http"
 )
 
 type Concierge struct {
 	_IDGen *identity.IDGen 
 	roomMap map[string]*room.Room
-	queue queue.IQueue
+	cache cache.ICache
 }
 
-func NewConcierge(IDGen *identity.IDGen, queue queue.IQueue) *Concierge {
+func NewConcierge(IDGen *identity.IDGen, cache cache.ICache) *Concierge {
 	c := &Concierge{
 		_IDGen: IDGen,
 		roomMap: map[string]{},
-		queue: queue,
+		cache: cache,
 	}
 
 	go c.Poll()
@@ -27,7 +27,7 @@ func NewConcierge(IDGen *identity.IDGen, queue queue.IQueue) *Concierge {
 
 func (c *Concierge) Poll() {
 	for {
-		value, err := queue.Poll()
+		value, err := cache.Poll()
 
 		// Potential timeout
 		if value == nil {
@@ -36,8 +36,8 @@ func (c *Concierge) Poll() {
 
 		// Potential server fail
 		if err != nil {
-			// TODO: handle queue failure case
-			panic("Polling failed, queue server down")
+			// TODO: handle cache failure case
+			panic("Polling failed, cache server down")
 		}
 
 

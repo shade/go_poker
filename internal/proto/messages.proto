@@ -38,20 +38,20 @@ enum EventType {
     ACTION = 65;
     ACTION_ACK = 66;
 
-    CHAT_MSG_SEND = 128;
-    CHAT_MSG_RECV = 129;
+    CHAT_MSG = 128;
+    CHAT_MSG_ACK = 129;
 }
 
 message Packet {
     EventType event = 1;
+    string table_id = 2;
+
     oneof payload {
-        SitEvent sit = 2;
-        StandEvent stand = 3;
-
+        SitEvent sit = 3;
         SitAck sit_ack = 4;
-        StandAck stand_ack = 5;
+        StandEvent stand = 5;
 
-        table.Table join_state = 6;
+        table.Table state = 6;
 
         table.CardSet hand = 7;
         table.CardSet flop = 8;
@@ -61,8 +61,9 @@ message Packet {
         ActionMsg action = 11;
         ActionAck action_ack = 12;
 
-        ChatMsgSend msg_send = 100;
-        ChatMsgRecv msg_recv = 101;
+        ChatMsg msg = 100;
+
+        KickMsg kick = 102;
 
         google.protobuf.Empty empty = 254;
     }
@@ -73,8 +74,6 @@ message SitEvent {
     int32 chips = 3; 
 }
 
-message StandEvent {}
-
 message SitAck {
     string table_id = 1;
     bool sat_down = 2;
@@ -82,27 +81,23 @@ message SitAck {
     string reason = 4;
 }
 
-message StandAck {
-    string table_id = 1;
-    bool stood_up = 2;
-    int32 balance = 3;
-    string reason = 4;
+enum KickReason {
+    BANNED = 0;
+    STOOD_UP = 1;
+    BUSTED = 2;
 }
 
-message PlayerSeat {
-    string player = 1;
-    int32 balance = 2;
-    int32 seat_num = 3;
+message KickMsg {
+    string username = 1;
+    KickReason reason = 2;
+    string details = 3;
+    int64 balance = 4;
 }
 
-message ChatMsgSend {
+message ChatMsg {
     string data = 1;
-}
-
-message ChatMsgRecv {
-    int32 message_id = 1;
-    string user_id = 2;
-    string data = 3;
+    int32 message_id = 2;
+    string user_id = 3;
     int32 timestamp = 4;
 }
 
