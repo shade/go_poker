@@ -29,14 +29,15 @@ enum EventType {
     START_GAME = 38;
     END_GAME = 39;
 
-    PREFLOP_HAND = 51;
+    HAND = 51;
     FLOP = 52;
     TURN = 53;
     RIVER = 54;
 
     TIMER = 64;
-    ACTION = 65;
-    ACTION_ACK = 66;
+    REQUEST_ACTION = 65;
+    ACTION = 66;
+    ACTION_ACK = 67;
 
     CHAT_MSG = 128;
     CHAT_MSG_ACK = 129;

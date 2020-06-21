@@ -5,20 +5,22 @@ import (
 	"go_poker/internal/room/user"
 
 	"github.com/golang/protobuf/proto"
+	. "go_poker/internal/interfaces"
 )
 
 type Room struct {
 	watchers []*user.User
-	table    *table.Table
+	table    *ITable
 	msgCount int64
 }
 
 func NewRoom(opts table.Options) *Room {
 	r = &Room{
 		table:    nil,
-		watchers: []*interfaces.IPlayer{},
+		watchers: []IPlayer{},
 		msgCount: 0,
 	}
+
 	r.table = table.NewTable(r, opts)
 
 	return r

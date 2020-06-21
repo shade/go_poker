@@ -56,6 +56,8 @@ type Sock struct {
 
 	connCounter int64
 	conns       []*SocketConn
+
+	observers map[proto.GeneratedEnum][]*interface{}
 }
 
 func NewSock() *Sock {
@@ -105,7 +107,7 @@ func (s *Sock) read(conn *SocketConn) {
 			continue
 		}
 
-		s.outQ <- msg
+		s.notifyObservers(msg)
 	}
 }
 
@@ -119,6 +121,12 @@ func (s *Sock) write(conn *SocketConn) {
 				// TODO: log this error
 			}
 		}
+	}
+}
+
+func (s *Sock) notifyObservers(msg *msgpb.Packet) {
+	for _, observer := range s.observers[msg.Event] {
+		observer.Update(msg.Event, msg)
 	}
 }
 
@@ -162,12 +170,16 @@ func (s *Sock) AddConnection(w http.ResponseWriter, r *http.Request) {
 	go s.write(sc)
 }
 
-func (s *Sock) Read() proto.Message {
-	return <-s.outQ
-}
-
 func (s *Sock) Write(msg proto.Message) {
 	go func() {
 		s.inQ <- msg
 	}()
+}
+
+func (s *Sock) RegisterObserver(event proto.GeneratedEnum, IObserver observer) {
+	s.observers[event.GeneratedEnum]
+}
+
+func (s *Sock) DeregisterObserver(event proto.GeneratedEnum, observer *interface{}) {
+
 }

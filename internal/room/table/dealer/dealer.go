@@ -1,49 +1,45 @@
 package dealer
 
 import (
-    "go_poker/interfaces"
+    . "go_poker/internal/interfaces"
     "github.com/chehsunliu/poker"
 )
 
 
 type Dealer struct {
-    deck *poker.Deck
-    hands map[int][2]poker.Card
+	deck *poker.Deck
+	
+	flop [3]ICard
+	turn ICard
+	river ICard
 }
 
 func NewDealer() IDealer {
     return &Dealer {
-        deck: poker.Deck.NewDeck(),
-        hands: nil
+        deck: poker.Deck.NewDeck()
     }
 }
 
-func (Dealer *d) DealTable(seats: []int) {
-    d.deck.Shuffle()
-    d.hands = make(map[int][2]poker.Card)
-    for _, idx := range 0..players {
-        d.hands[idx] = d.deck.Draw(2)
-    }
+func (Dealer *d) DealHands(seats *ring.Ring) {
+	d.deck.Shuffle()
+
+	seats.Do(func(p interface{}) {
+		p.(IPlayer).SetHand(d.deck.Draw(2))
+	})
 }
 
-func (Dealer *d) DealFlop() [3]ICard {
-    return d.deck.Draw(3)
+func (Dealer *d) DealFlop(seats i.IRoom) {
+	d.flop = d.deck.Draw(3)
+
+	seats.Do(func(p interface{}) {
+	})
 }
 
-func (Dealer *d) DealTurn() ICard {
+func (Dealer *d) DealTurn(seats *interfaces.Room) {
+	d.turn = 
     return d.deck.Draw(1)[0]
 }
 
-func (Dealer *d) DealRiver() ICard {
+func (Dealer *d) DealRiver(seats *interfaces.Room) {
     return d.deck.Draw(1)[0]
-}
-
-func (Dealer *d) GetHand(seatIdx: int) ([]poker.Card, error) {
-    hand, ok := d.hands[seatIdx]
-
-    if !ok {
-        return (nil, errors.New("No hand dealt, for this seat."))
-    }
-
-    return (hand, nil)
 }

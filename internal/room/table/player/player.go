@@ -12,6 +12,7 @@ type Player struct {
 	inPot uint64
 	state   msgpb.PlayerState
 	seat uint64
+	hand [2]ICard
 }
 
 func NewPlayer(u *user.User, balance ) *Player {
@@ -21,15 +22,17 @@ func NewPlayer(u *user.User, balance ) *Player {
 		msgpb.PlayerState_PENDING,
 	}
 
-	p.RegisterObserver(msgpb.EventType_ACTION, p.ProcessAction)
-
-	if table.IsCreator(u) {
-		p.RegisterObserver(msgpb.EventType_START_GAME, p.StartGame)
-		p.RegisterObserver(msgpb.EventType_END_GAME, p.EndGame)	
-	}
 
 	return p
 }
+
+func (p *Player) WatchPlayer(event proto.GeneratedEnum, cb func(IPlayer, proto.Message)) {
+	p.RegisterObserver(event, func(i interface{}, msg proto.Message) {
+		cb(i.(IPlayer), msg.())
+	})
+}
+
+
 
 func (p *Player) SetSeat(int32 seat) {
 	p.seat = seat
@@ -106,4 +109,20 @@ func (p *Player) Serialize() proto.Message {
 		State: p.state,
 		SeatNum: p.seat,
 	}
+}
+
+func (p *Player) SetHand(hand [2]ICard) {
+	p.hand = hand
+
+	p.Send(msgpb.Packet {
+		Event: msgpb.EventType_HAND,
+		Payload: msgpb.Packet_Hand{
+			Hand: &msgpb.CardSet {
+				Cards: []msgpb.Card{
+					hand[0].Serialize(),
+					hand[1].Serialize(),
+				}
+			}
+		}	
+	})
 }
