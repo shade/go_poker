@@ -1,25 +1,25 @@
 package user
 
 import (
-	msgpb "go_poker/internal/proto"
+	"go_poker/internal/room/user/sock"
 	"go_poker/pkg/pausabletimer"
 
-	"github.com/golang/protobuf/jsonpb"
+	. "go_poker/internal/interfaces"
+
 	"github.com/golang/protobuf/proto"
 )
 
 type User struct {
-	ISock
-	id string
+	sock ISock
+	id   string
 
-	balance int
-	timer   *pausabletimer.PausableTimer
+	timer *pausabletimer.PausableTimer
 }
 
 func NewUser(id string) IUser {
 	return &User{
-		NewSock(),
-		id: id,
+		sock: sock.NewSock(),
+		id:   id,
 	}
 }
 
@@ -28,27 +28,15 @@ func (u *User) GetID() string {
 }
 
 func (u *User) Send(msg proto.Message) {
-	m := jsonpb.Marshaler{}
-	result, _ := m.MarshalToString(msg)
-	u.sock.Write([]byte(result))
+	u.sock.Write(msg)
 }
 
-func (p User) GetSock() ISock {
-	return u.sock
+func (u *User) WatchUser(msgType proto.GeneratedEnum, cb func(IUser, proto.Message)) {
+	u.sock.RegisterObserver(msgType, func(msg proto.Message) {
+		cb(u, msg)
+	})
 }
 
-func (p User) GetBalance(amount int32) int32 {
-	return u.balance
-}
-
-func (u *User) SubBalance(amount int32) {
-	u.balance -= amount
-}
-
-func (u *User) Serialize() proto.Message {
-	return
-}
-
-func (u *User) RegisterObserver(msgType msgpb.EventType, msg proto.Message) {
-
+func (u *User) IgnoreUser(msgType proto.GeneratedEnum) {
+	u.sock.DeregisterObservers(msgType)
 }

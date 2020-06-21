@@ -1,6 +1,5 @@
 syntax = "proto3";
 package table;
-option go_package = "messages";
 
 message Table {
     // The set of options used to create this table.

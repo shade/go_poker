@@ -46,33 +46,27 @@ func (r *Room) relayChat(user *User, packet msgpb.Packet) {
 		}
 	})
 }
+
 func (r *Room) seatPlayer(user *User, packet msgpb.Packet) {
-	sit := packet.GetSit()
+	msg := packet.GetSitMessage()
+	seat, err := r.table.Sit(user, msg.SeatNum, msg.Buyin)
 
-	if r.table.IsValidBuyin(sit.Chips) {
-		r.table.Sit(user)
-
+	if err != nil {
+		u.Send(msgpb.Packet{
+			Event: msgpb.EventType_TABLE_SIT_ACK,
+			SitAckt: msgpb.SitAck{
+				SatDown: false,
+				Reason: err.Error(),
+			}
+		})
+	} else {
 		r.Broadcast(msgpb.Packet{
 			Event: msgpb.EventType_TABLE_SIT_ACK,
 			SitAck: msgpb.SitAck{
 				SatDown: true,
 			},
 		})
-	} else {
-		u.Send(msgpb.Packet{
-			Event: msgpb.EventType_TABLE_SIT_ACK,
-			SitAckt: msgpb.SitAck{
-				SatDown: false,
-				Reason: "Invalid number of chips",
-			}
-		})
 	}
-
-
-
-
-
-
 }
 
 func (r Room) allUsers() []*user.User {

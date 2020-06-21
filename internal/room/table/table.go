@@ -1,8 +1,12 @@
 package table
 
 import (
-	"container/ring"
+	. "go_poker/internal/interfaces"
 	msgpb "go_poker/internal/proto"
+	"go_poker/internal/room/table/dealer"
+	"go_poker/pkg/ringf"
+
+	"math"
 	"math/rand"
 	"sync"
 )
@@ -19,31 +23,56 @@ const (
 )
 
 type Table struct {
-	id        string
-	pending   []IPlayer
-	opts      *msgpb.TableOptions
-	room      interfaces.Room
-	dealer    IDealer
-	actionMux sync.Mutex
+	id         string
+	pending    []IPlayer
+	opts       *msgpb.TableOptions
+	room       IRoom
+	dealer     *dealer.Dealer
+	playersMux sync.Mutex
+	actionMux  sync.Mutex
 
 	roundState RoundState
 	// Pointer on the player that has the lowest seat number.
-	players *ring.Ring
+	// Any mutations to the players list and seating must occur here.
+	players *ringf.RingF
 
 	// Pointer on the player that holds the button.
-	button *ring.Ring
+	button *ringf.RingF
 	// Pointer on the player that currently has the action.
-	action *ring.Ring
+	action *ringf.RingF
 	// Pointer on the player that is the last to make an aggressive move.
-	aggressor *ring.Ring
+	aggressor *ringf.RingF
 }
 
-func NewTable() ITable {
-	return t
+func NewTable(opts) ITable {
+	return Table{}
 }
 
-func (t *Table) SeatPlayer(p IPlayer, seat int) {
-	// Allow player to choose any seat
+func (t *Table) SeatPlayer(p IPlayer, seat uint32, buyin uint64) {
+	t.playersMux.Lock()
+	lowest := t.players
+
+	if isValidBuyin(buyin) && isValidSeat(seat) {
+
+	}
+
+	if seat < lowest.Value.(IPlayer).GetSeat() {
+		t.players.Prev().Link(ringf.RingF{
+			Value: p,
+		})
+
+		t.players = t.players.Prev()
+	} else {
+		for lowest.Next() != t.players {
+			if seat < lowest.Value.(IPlayer).GetSeat() {
+				lowest.Prev().Link(ringf.RingF{
+					Value: p,
+				})
+				return
+			}
+		}
+	}
+	t.playersMux.Unlock()
 }
 
 func (t *Table) Start() {
@@ -167,23 +196,18 @@ func (t *Table) Showdown() {
 }
 
 func (t *Table) KickBusted() {
-	// TODO:
-	/*
-		// Copy the starting pointer
-		tr := t.players
+	t.playersMux.Lock()
 
-		kicked := []IPlayer{}
-		for {
-			if t.players[i].IsBusted() {
-				kicked = append(kicked, t.players[i])
-			}
-		}
-
-		// Seconds pass is done in case KickPlayer modifies
-		// seating of players.
-		for _, p := range kicked {
+	t.players = t.players.Filter(func(p interface{}) bool {
+		if p.(IPlayer).IsBusted() {
 			t.KickPlayer(p, msgpb.KickReason_BUSTED)
-		}*/
+			return false
+		} else {
+			return true
+		}
+	})
+
+	t.playersMux.Unlock()
 }
 
 func (t *Table) GetBlinds() (int64, int64) {
@@ -207,16 +231,34 @@ func (t *Table) Expire(p *Player) {
 	t.MoveAction()
 }
 
-func (t *Table) IsValidBet(bet uint64) {
+func (t *Table) isValidBet(bet uint64) bool {
 
 }
 
-func (t *Table) IsValidBuyin(amount int64) bool {
+func (t *Table) isValidSeat(seat uint32) bool {
+	if seat >= t.opts.MaxSeats {
+		return false
+	}
+
+	taken := t.players.Any(func(player interface{}) bool {
+		return player.(IPlayer).GetSeat() == seat
+	})
+
+	if taken {
+		return false
+	}
+
+	return false
+}
+
+func (t *Table) isValidBuyin(amount uint64) bool {
 	if amount < t.opts.GetMinBuy() {
 		return false
 	}
 
-	if amount >= t.opts.GetMaxBuy() {
+	if amount >= (math.MaxInt64 / t.opts.MaxSeats) {
 		return false
 	}
+
+	return true
 }

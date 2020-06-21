@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+option go_package = "messages";
+
+/**
+ * @exclude
+ * Please ensure comments are updated when fields are updated
+ * comments are used to generate documentation via protoc-gen-go
+*/
+
+enum ClientEvent {
+    IGNORE = 0;
+    // DEBUG ONLY
+    PING = 1;
+    // Sent when we're going to sit down at the table.
+    SIT_DOWN = 2;
+
+    // Sent when we're attempting to adjust the
+    // options for this specific user/client.
+    OPTIONS = 3;
+
+    // Sent when the user decides to stand up
+    STAND_UP = 6;
+    
+    // If show is not sent the cards are automucked
+    SHOW = 7;
+
+    ACTION = 8;
+
+    // Sent when the client wants to know who has the action
+    // and how much time they have left.
+    ACTION_LOCATION = 9;
+
+    // Sent by the client when they want the state
+    // of the entire table.
+    GET_STATE = 10;
+    // Sent by the user to 
+    MSG = 11;
+
+    // Only allowed to be sent by the table creator
+    START_GAME = 12;
+    // Only allowed to be sent by the table creator
+    END_GAME = 13;
+    // Only allowed to be sent by the table creator
+    KICK_PLAYER = 14;
+}
+
+message ClientPacket {
+    ClientEvent event = 1;
+    oneof payload {
+        PingMessage ping = 2;
+    }
+}
+
+message PingMessage {
+    int32 timestamp = 1;
+}
+
+message SitMessage {
+    int64 buyin = 1;
+    int32 seat = 2;
+}
+
+message ClientOptions {
+    bool auto_muck = 1;
+    int32 run_twice = 2;
+}

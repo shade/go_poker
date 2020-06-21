@@ -2,6 +2,7 @@ package sock
 
 import (
 	"fmt"
+	. "go_poker/internal/interfaces"
 	msgpb "go_poker/internal/proto"
 	"net/http"
 	"time"
@@ -30,7 +31,7 @@ var upgrader = websocket.Upgrader{
 
 type SocketConn struct {
 	*websocket.Conn
-	Id     int64
+	ID     int64
 	IsJSON bool
 }
 
@@ -57,77 +58,21 @@ type Sock struct {
 	connCounter int64
 	conns       []*SocketConn
 
-	observers map[proto.GeneratedEnum][]*interface{}
+	observers map[proto.GeneratedEnum][]ObserverCallback
 }
 
 func NewSock() *Sock {
-	return &Sock{
+	s := &Sock{
 		inQ:  make(chan proto.Message, CHAN_BUFFER_SIZE),
 		outQ: make(chan proto.Message, CHAN_BUFFER_SIZE),
 
 		connCounter: 0,
 		conns:       []*SocketConn{},
+		observers:   make(map[proto.GeneratedEnum][]ObserverCallback),
 	}
-}
 
-func (s *Sock) read(conn *SocketConn) {
-	for {
-		_, msgBytes, err := conn.ReadMessage()
-		if err != nil {
-			fmt.Println("Invalid websocket reaD!")
-			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				// TODO: log error or something
-			}
-
-			// TODO: Kill routine for this socket
-			conn.Close()
-			break
-		}
-
-		var parseErr error
-		msg := &msgpb.Packet{}
-		// Parse as JSON or raw proto
-		if conn.IsJSON {
-			parseErr = jsonpb.UnmarshalString(string(msgBytes), msg)
-		} else {
-			parseErr = proto.Unmarshal(msgBytes, msg)
-		}
-
-		if parseErr != nil {
-			fmt.Println("Invalid proto!")
-			// TODO: handle /log error
-		}
-
-		// Though sock is supposed to be opaque handling ping/pong
-		// is an appropriate layer violation
-		if msg.Event == msgpb.EventType_PING {
-			s.Write(&msgpb.Packet{
-				Event: msgpb.EventType_PONG,
-			})
-			continue
-		}
-
-		s.notifyObservers(msg)
-	}
-}
-
-func (s *Sock) write(conn *SocketConn) {
-	for {
-		msg := <-s.inQ
-		for _, conn := range s.conns {
-			err := conn.Write(msg)
-
-			if err != nil {
-				// TODO: log this error
-			}
-		}
-	}
-}
-
-func (s *Sock) notifyObservers(msg *msgpb.Packet) {
-	for _, observer := range s.observers[msg.Event] {
-		observer.Update(msg.Event, msg)
-	}
+	s.RegisterObserver(msgpb.EventType_PING, s.pong)
+	return s
 }
 
 func (s *Sock) AddConnection(w http.ResponseWriter, r *http.Request) {
@@ -150,7 +95,7 @@ func (s *Sock) AddConnection(w http.ResponseWriter, r *http.Request) {
 
 	sc := &SocketConn{
 		Conn: conn,
-		Id:   s.connCounter,
+		ID:   s.connCounter,
 	}
 	s.connCounter += 1
 
@@ -176,10 +121,74 @@ func (s *Sock) Write(msg proto.Message) {
 	}()
 }
 
-func (s *Sock) RegisterObserver(event proto.GeneratedEnum, IObserver observer) {
-	s.observers[event.GeneratedEnum]
+func (s *Sock) RegisterObserver(event proto.GeneratedEnum, cb ObserverCallback) {
+	observers, ok := s.observers[event]
+
+	if !ok {
+		s.observers[event] = []ObserverCallback{cb}
+	} else {
+		observers = append(observers, cb)
+	}
+
 }
 
-func (s *Sock) DeregisterObserver(event proto.GeneratedEnum, observer *interface{}) {
+func (s *Sock) DeregisterObservers(event proto.GeneratedEnum) {
+	s.observers[event] = []ObserverCallback{}
+}
 
+func (s *Sock) read(conn *SocketConn) {
+	for {
+		_, msgBytes, err := conn.ReadMessage()
+		if err != nil {
+			fmt.Println("InvalID websocket reaD!")
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+				// TODO: log error or something
+			}
+
+			// TODO: Kill routine for this socket
+			conn.Close()
+			break
+		}
+
+		var parseErr error
+		msg := &msgpb.Packet{}
+		// Parse as JSON or raw proto
+		if conn.IsJSON {
+			parseErr = jsonpb.UnmarshalString(string(msgBytes), msg)
+		} else {
+			parseErr = proto.Unmarshal(msgBytes, msg)
+		}
+
+		if parseErr != nil {
+			fmt.Println("InvalID proto!")
+			// TODO: handle /log error
+		}
+
+		s.notifyObservers(msg)
+	}
+}
+
+func (s *Sock) write(conn *SocketConn) {
+	for {
+		msg := <-s.inQ
+		for _, conn := range s.conns {
+			err := conn.Write(msg)
+
+			if err != nil {
+				// TODO: log this error
+			}
+		}
+	}
+}
+
+func (s *Sock) notifyObservers(msg *msgpb.Packet) {
+	for _, observerCB := range s.observers[msg.Event] {
+		observerCB(msg)
+	}
+}
+
+func (s *Sock) pong(_ proto.Message) {
+	s.Write(&msgpb.Packet{
+		Event: msgpb.EventType_PONG,
+	})
 }

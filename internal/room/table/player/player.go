@@ -15,7 +15,7 @@ type Player struct {
 	hand [2]ICard
 }
 
-func NewPlayer(u *user.User, balance ) *Player {
+func NewPlayer(u *user.User, balance, seat) *Player {
 	p := &Player{
 		u,
 		balance,
@@ -125,4 +125,8 @@ func (p *Player) SetHand(hand [2]ICard) {
 			}
 		}	
 	})
+}
+
+func (p *Player) ShowHand(b Broadcastable) {
+	c
 }

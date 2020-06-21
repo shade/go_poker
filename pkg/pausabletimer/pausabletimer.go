@@ -18,9 +18,9 @@ func msToNs(ms int64) int64 {
 	return ms * 1000000
 }
 
-// NewPausableTimer creates a PausableTimer based on a millisecond
+// New creates a PausableTimer based on a millisecond
 // count and a callback set to run after
-func NewPausableTimer(ms int64, cb func()) *PausableTimer {
+func New(ms int64, cb func()) *PausableTimer {
 	t := time.Duration(msToNs(ms))
 
 	now := time.Now()

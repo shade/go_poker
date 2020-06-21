@@ -1,0 +1,108 @@
+syntax = "proto3";
+
+package messages;
+option go_package = "messages";
+import "table.proto";
+
+
+enum ServerEvent {
+    IGNORE = 0;
+    // DEBUG ONLY
+    PONG = 2;
+
+    //
+    HAND = 16;
+    // Sent by the server to force resychronization with the server state
+    TABLE_STATE = 17;
+    TABLE_FLOP = 18;
+    TABLE_TURN = 19;
+    TABLE_RIVER = 20;
+    ACTION_REQUEST = 21;
+    ACTION_ACK = 22;
+
+    PLAYER_SIT = 32;
+    PLAYER_STAND = 33;
+    PLAYER_SHOW = 34;
+    PLAYER_ACTION = 35;
+    PLAYER_MSG = 36;
+    
+    STATUS_MSG = 64;
+}
+
+message Packet {
+    ServerEvent event = 1;
+    oneof payload {
+        PongMessage pong = 2;
+        table.CardSet hand = 3;
+        table.Table table = 4;
+        table.CardSet flop = 5;
+        table.CardSet turn = 6;
+        table.CardSet river = 7;
+        ActionRequest action_req = 8;
+        ActionAck action_ack = 9;
+
+        PlayerMessage.Sit player_sit = 10;
+        PlayerMessage.Stand player_stand = 11;
+        PlayerMessage.Show player_show = 12;
+        //PlayerMessage.Action player_action = 13;
+        PlayerMessage.Chat chat = 14;
+
+        TableStatusMessage status = 15;
+    }
+}
+
+
+message PongMessage {
+    uint32 timestamp = 1;
+}
+
+message ActionRequest {
+    string seat_num = 1;
+    uint64 min_bet = 2;
+    uint32 expire = 3;
+    uint32 nonce = 4;
+}
+
+message ActionAck {
+    bool ok = 1;
+    string error = 2;
+    uint32 nonce = 3;
+}
+
+message PlayerMessage {
+    enum StandReason {
+        BANNED = 0;
+        STOOD_UP = 1;
+        BUSTED = 2;
+    }
+
+    message Sit {
+        string player_id = 1;
+        uint32 seat_num = 2;
+        uint64 buyin = 3;
+    }
+
+    message Stand {
+        string player_id = 1;
+        uint32 seat_num = 2;
+        uint64 balance = 3;
+        StandReason reason = 4;
+    }
+
+    message Show {
+        table.CardSet cards = 1;
+    }
+
+    message Chat {
+        string player_id = 1;
+        string data = 2;
+        uint32 message_id = 3;
+        uint32 timestamp = 4;
+    }
+}
+
+message TableStatusMessage {
+    string data = 1;
+    uint32 message_id = 2;
+    uint32 timestamp = 3;
+}

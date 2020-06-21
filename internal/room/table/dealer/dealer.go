@@ -1,6 +1,7 @@
 package dealer
 
 import (
+	"go_poker/pkg/ringf"
     . "go_poker/internal/interfaces"
     "github.com/chehsunliu/poker"
 )
@@ -20,7 +21,7 @@ func NewDealer() IDealer {
     }
 }
 
-func (Dealer *d) DealHands(seats *ring.Ring) {
+func (Dealer *d) DealHands(seats *ringf.RingF) {
 	d.deck.Shuffle()
 
 	seats.Do(func(p interface{}) {
@@ -28,18 +29,19 @@ func (Dealer *d) DealHands(seats *ring.Ring) {
 	})
 }
 
-func (Dealer *d) DealFlop(seats i.IRoom) {
+func (Dealer *d) DealFlop(b Broadcastable) {
 	d.flop = d.deck.Draw(3)
 
-	seats.Do(func(p interface{}) {
+	b.Broadcast(msgpb.Packet{
+		Event: msgpb.ServerEvent_TABLE_FLOP,
+		Payload: 
 	})
 }
 
-func (Dealer *d) DealTurn(seats *interfaces.Room) {
-	d.turn = 
+func (Dealer *d) DealTurn(b Broadcastable) {
     return d.deck.Draw(1)[0]
 }
 
-func (Dealer *d) DealRiver(seats *interfaces.Room) {
+func (Dealer *d) DealRiver(b Broadcastable) {
     return d.deck.Draw(1)[0]
 }

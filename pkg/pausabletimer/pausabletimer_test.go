@@ -22,7 +22,7 @@ func (s *test_state) setFalse() {
 func TestPauseResumeZero(t *testing.T) {
 	state := newTestState()
 
-	pausable := NewPausableTimer(100, state.setTrue)
+	pausable := New(100, state.setTrue)
 	if !pausable.Pause() {
 		t.Error("Unexpected error Pause() failed")
 		return
@@ -40,7 +40,7 @@ func TestPauseResumeZero(t *testing.T) {
 func TestPauseResumeNegative(t *testing.T) {
 	state := newTestState()
 
-	pausable := NewPausableTimer(100, state.setTrue)
+	pausable := New(100, state.setTrue)
 	if !pausable.Pause() {
 		t.Error("Unexpected error Pause() failed")
 		return
@@ -59,7 +59,7 @@ func TestPauseResumeNegative(t *testing.T) {
 func TestPauseResumeMutation(t *testing.T) {
 	state := newTestState()
 
-	pausable := NewPausableTimer(100, state.setTrue)
+	pausable := New(100, state.setTrue)
 	if !pausable.Pause() {
 		t.Error("Unexpected error Pause() failed")
 		return
@@ -81,7 +81,7 @@ func TestPauseResumeMutation(t *testing.T) {
 func TestResetWhilePaused(t *testing.T) {
 	state := newTestState()
 
-	pausable := NewPausableTimer(100, state.setTrue)
+	pausable := New(100, state.setTrue)
 	if !pausable.Pause() {
 		t.Error("Unexpected error Pause() failed")
 		return
