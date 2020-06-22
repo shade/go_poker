@@ -29,7 +29,7 @@ enum ServerEvent {
     STATUS_MSG = 64;
 }
 
-message Packet {
+message ServerPacket {
     ServerEvent event = 1;
     oneof payload {
         PongMessage pong = 2;
