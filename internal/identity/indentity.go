@@ -7,7 +7,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
+
+	"go_poker/internal/identity/db"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
@@ -20,12 +23,12 @@ const AUTH_HEADER = "Authorization"
 const BEARER_SCHEMA = "Bearer "
 
 type IDGen struct {
-	db     IIDB
+	db     db.IIDB
 	secret string
 	algo   jwt.SigningMethod
 }
 
-func NewIDGen(db IIDB, secret string) *IDGen {
+func NewIDGen(db db.IIDB, secret string) *IDGen {
 	return &IDGen{
 		db:     db,
 		secret: secret,
@@ -37,8 +40,8 @@ func (i *IDGen) IsValidPassword(hash string, pass string) bool {
 	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(pass)) == nil
 }
 
-func (i *IDGen) FetchRecord(username string, password string) (*Record, error) {
-	record, err := i.db.Get(DBKey(username))
+func (i *IDGen) FetchRecord(username string, password string) (*db.Record, error) {
+	record, err := i.db.Get(db.DBKey(username))
 
 	if err != nil {
 		return nil, errors.New("User doesn't exist")
@@ -51,9 +54,18 @@ func (i *IDGen) FetchRecord(username string, password string) (*Record, error) {
 	return record, nil
 }
 
-func (i *IDGen) ValidateRecord(r *Record) error {
+func (i *IDGen) ValidateRecord(r *db.Record) error {
+	// Ensure all the fields are valid
+
+	if len(r.Username) == 0 {
+		return errors.New("Unset field: Username")
+	}
+
+	if len(r.Password) == 0 {
+		return errors.New("Unset field: Password")
+	}
 	// Ensure no user with same username in the db
-	if record, _ := i.db.Get(DBKey(r.Username)); record != nil {
+	if record, _ := i.db.Get(db.DBKey(r.Username)); record != nil {
 		return errors.New("User already exists in DB")
 	}
 
@@ -77,7 +89,7 @@ func (i *IDGen) ParseToken(t string) (bool, map[string]interface{}) {
 	return true, claims
 }
 
-func (i *IDGen) CreateToken(r *Record) string {
+func (i *IDGen) CreateToken(r *db.Record) string {
 	token, err := jwt.NewWithClaims(i.algo, jwt.MapClaims{
 		"username": r.Username,
 		"exp":      time.Now().Add(TOKEN_DURATION).Unix(),
@@ -98,20 +110,19 @@ type tokenMsg struct {
 	Token string `json:"token"`
 }
 
-func writeJSON(w http.ResponseWriter, data interface{}) {
+func writeJSON(w http.ResponseWriter, data interface{}, status int) {
 	dataStr, err := json.Marshal(data)
 
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
 	w.Write(dataStr)
 }
 
 func (i *IDGen) IDHandler(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		writeJSON(w, errorMsg{Error: "Could not parse form data"})
+		writeJSON(w, errorMsg{Error: "Could not parse form data"}, http.StatusBadRequest)
 		return
 	}
 
@@ -120,9 +131,9 @@ func (i *IDGen) IDHandler(w http.ResponseWriter, r *http.Request) {
 	pass := r.FormValue("password")
 	hash, _ := bcrypt.GenerateFromPassword([]byte(pass), 10)
 
-	record := &Record{name, user, pass, base64.StdEncoding.EncodeToString(hash)}
+	record := &db.Record{name, user, pass, base64.StdEncoding.EncodeToString(hash)}
 	if err := i.ValidateRecord(record); err != nil {
-		writeJSON(w, errorMsg{Error: err.Error()})
+		writeJSON(w, errorMsg{Error: err.Error()}, http.StatusBadRequest)
 		return
 	}
 
@@ -130,17 +141,17 @@ func (i *IDGen) IDHandler(w http.ResponseWriter, r *http.Request) {
 	record.Password = ""
 
 	if err := i.db.Insert(record); err != nil {
-		writeJSON(w, errorMsg{Error: "Could not create new user DB error"})
+		writeJSON(w, errorMsg{Error: "Could not create new user DB error"}, http.StatusInternalServerError)
 		log.Println(err)
 		return
 	}
 
-	writeJSON(w, tokenMsg{Token: i.CreateToken(record)})
+	writeJSON(w, tokenMsg{Token: i.CreateToken(record)}, http.StatusOK)
 }
 
 func (i *IDGen) TokenHandler(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		writeJSON(w, errorMsg{Error: "Could not parse form data"})
+		writeJSON(w, errorMsg{Error: "Could not parse form data"}, http.StatusBadRequest)
 		return
 	}
 
@@ -150,9 +161,27 @@ func (i *IDGen) TokenHandler(w http.ResponseWriter, r *http.Request) {
 	record, err := i.FetchRecord(user, pass)
 
 	if err != nil {
-		writeJSON(w, errorMsg{Error: err.Error()})
+		writeJSON(w, errorMsg{Error: err.Error()}, http.StatusBadRequest)
 		return
 	}
 
-	writeJSON(w, tokenMsg{Token: i.CreateToken(record)})
+	writeJSON(w, tokenMsg{Token: i.CreateToken(record)}, http.StatusOK)
+}
+
+func (i *IDGen) Middleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		splitToken := strings.Split(r.Header.Get(AUTH_HEADER), BEARER_SCHEMA)
+		if len(splitToken) != 2 {
+			writeJSON(w, errorMsg{Error: "Invalid bearer token"}, http.StatusForbidden)
+			return
+		}
+
+		token := strings.TrimSpace(splitToken[1])
+		fmt.Println(token)
+		valid, _ := i.ParseToken(token)
+		if !valid {
+			writeJSON(w, errorMsg{Error: "Invalid bearer token"}, http.StatusForbidden)
+		}
+		next.ServeHTTP(w, r)
+	})
 }

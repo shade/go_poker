@@ -59,6 +59,9 @@ func (p *Player) Shove() uint64{
 	return val
 }
 
+func (p *Player) hasChips(chips uint64) bool {
+	return p.balance >= chips
+}
 func (p *Player) IsAllIn() bool {
 	return p.state == msgpb.PlayerState_ALL_IN
 }

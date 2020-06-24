@@ -1,0 +1,15 @@
+rest_api:
+  port: 8080
+  db:
+    - redis:
+        - username: 
+        - password: 
+        - db:
+
+socket_api:
+  port: 8081
+  db:
+    - redis:
+        - username: 
+        - password: 
+        - db:

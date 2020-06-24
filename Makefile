@@ -6,11 +6,11 @@ GOGET=$(GOCMD) get
 PROTO_DIR=internal/proto
 DOC_PORT=19970
 
-all:
-	$(GORUN) src/main.go -- -wsport=8081
+.PHONY: all test clean
 
+all:
 test:
-	$(GOTEST) ./internal/identity/...
+	$(GOTEST) ./test/e2e/id_test.go
 
 build:
 	protoc  --proto_path=$(PROTO_DIR) --go_out=$(PROTO_DIR) $(PROTO_DIR)/*.proto

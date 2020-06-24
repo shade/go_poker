@@ -31,6 +31,8 @@ type Table struct {
 	playersMux sync.Mutex
 	actionMux  sync.Mutex
 
+	lastBet uint64
+
 	roundState RoundState
 	// Pointer on the player that has the lowest seat number.
 	// Any mutations to the players list and seating must occur here.
@@ -46,33 +48,6 @@ type Table struct {
 
 func NewTable(opts) ITable {
 	return Table{}
-}
-
-func (t *Table) SeatPlayer(p IPlayer, seat uint32, buyin uint64) {
-	t.playersMux.Lock()
-	lowest := t.players
-
-	if isValidBuyin(buyin) && isValidSeat(seat) {
-
-	}
-
-	if seat < lowest.Value.(IPlayer).GetSeat() {
-		t.players.Prev().Link(ringf.RingF{
-			Value: p,
-		})
-
-		t.players = t.players.Prev()
-	} else {
-		for lowest.Next() != t.players {
-			if seat < lowest.Value.(IPlayer).GetSeat() {
-				lowest.Prev().Link(ringf.RingF{
-					Value: p,
-				})
-				return
-			}
-		}
-	}
-	t.playersMux.Unlock()
 }
 
 func (t *Table) Start() {
@@ -134,15 +109,57 @@ func (t *Table) NextRound() {
 	}
 }
 
+func (t *Table) SeatPlayer(p IPlayer, seat uint32, buyin uint64) {
+	t.playersMux.Lock()
+	lowest := t.players
+
+	if isValidBuyin(buyin) && isValidSeat(seat) {
+
+	}
+
+	if seat < lowest.Value.(IPlayer).GetSeat() {
+		t.players.Prev().Link(ringf.RingF{
+			Value: p,
+		})
+
+		t.players = t.players.Prev()
+	} else {
+		for lowest.Next() != t.players {
+			if seat < lowest.Value.(IPlayer).GetSeat() {
+				lowest.Prev().Link(ringf.RingF{
+					Value: p,
+				})
+				return
+			}
+		}
+	}
+	t.playersMux.Unlock()
+}
+
+func (t *Table) LockableAction(p IPlayer) bool {
+	t.actionMux.Lock()
+	if t.action.Value.(IPlayer) == p {
+		return true
+	} else {
+		t.actionMux.Unlock()
+		return false
+	}
+}
+
 func (t *Table) AwaitAction() {
 	p := t.action.Value.(IPlayer)
 	// Broadcast the actionable player and their actions.
 	p.RegisterObserver(msgpb.EventType_ACTION, t.Action)
 	t.Expire(func() {
+		if !t.LockedAction(p) {
+			return
+		}
+
 		p.UnregisterObserver(msgpb.EventType_ACTION)
 		// Auto fold the player
 		// Next Action
 		t.MoveAction(p)
+		p.actionMux.Unlock()
 	})
 }
 
@@ -155,26 +172,50 @@ func (t *Table) MoveAction(p IPlayer) {
 	t.action = t.action.Next()
 }
 
-func (t *Table) Action(p IPlayer, action msgpb.ActionType, bet uint64) {
+func (t *Table) Action(p IPlayer, payload proto.Messsage) {
+	if !t.LockableAction(p) {
+		return
+	}
+
+	action, ok := payload.(msgpb.Action)
+
+	if !ok {
+		// Log error
+	}
+
 	switch action {
-	case msgpb.ActionType_FOLD:
+	case msgpb.ClientActionType_FOLD:
 		p.Fold()
-	case msgpb.ActionType_CALL:
-		if t.state == TableState.BETTING {
-			// Silently fail
+	case msgpb.ClientActionType_CHECK:
+		if t.roundState == BETTING {
+			t.emitAction(false, "")
+			t.playersMux.Unlock()
 			return
+		}
+	case msgpb.ClientActionType_CALL:
+		if t.roundState != BETTING {
+
+		}
+	case msgpb.ClientActionType_BET:
+		if t.roundState != BETTING {
+
+		}
+		// check or call
+		if action.chips == 0 {
+
 		}
 
-	case msgpb.ActionType_RAISE:
-		if !t.IsValidBet(bet) {
-			// Silently fail
-			return
+		if p.hasChips(action.chips) {
+
 		}
-		p.Bet(bet)
-		p.RegisterBet(bet)
-	case msgpb.ActionType_ALL_IN:
-		amount := p.Shove()
-		p.RegisterBet(amount)
+		if t.isValidBet(action.chips) {
+
+		}
+
+		if t.state == TableState.BETTING {
+		}
+
+	case msgpb.ClientActionType_ALLIN:
 	default:
 		// Silently fail
 		return
@@ -182,6 +223,7 @@ func (t *Table) Action(p IPlayer, action msgpb.ActionType, bet uint64) {
 
 	t.MoveAction()
 	t.BroadcastState()
+	t.actionMux.Unlock()
 	return
 }
 

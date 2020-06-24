@@ -1,4 +1,4 @@
-package identity
+package db
 
 type DBKey string
 

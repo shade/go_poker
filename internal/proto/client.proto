@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 option go_package = "messages";
+import "table.proto";
 
 /**
  * @exclude
@@ -57,11 +58,26 @@ message PingMessage {
 }
 
 message SitMessage {
-    int64 buyin = 1;
-    int32 seat = 2;
+    uint64 buyin = 1;
+    uint32 seat = 2;
 }
 
 message ClientOptions {
     bool auto_muck = 1;
     int32 run_twice = 2;
+}
+
+
+
+enum ClientActionType {
+    FOLD = 1;
+    CALL = 2;
+    BET = 2;
+    ALL_IN = 3;
+}
+
+message ActionMessage {
+    ActionType action = 1;
+    // Optional - only used for BET and RAISE.
+    uint64 chips = 2;
 }

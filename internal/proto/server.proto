@@ -19,6 +19,7 @@ enum ServerEvent {
     TABLE_RIVER = 20;
     ACTION_REQUEST = 21;
     ACTION_ACK = 22;
+    ACTION_BROADCAST = 23;
 
     PLAYER_SIT = 32;
     PLAYER_STAND = 33;
@@ -56,7 +57,7 @@ message PongMessage {
     uint32 timestamp = 1;
 }
 
-message ActionRequest {
+message ActionPing {
     string seat_num = 1;
     uint64 min_bet = 2;
     uint32 expire = 3;

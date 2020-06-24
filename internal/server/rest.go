@@ -10,14 +10,7 @@ import (
 )
 
 func Run(address string, id *identity.IDGen) {
-	r := mux.NewRouter()
-
-	s := r.PathPrefix("/api/v1").Subrouter()
-	s.HandleFunc("/users", id.IDHandler).Methods("POST")
-	s.HandleFunc("/users/{username}/token", id.TokenHandler).Methods("POST")
-
-	s.HandleFunc("/tables", fetchTables).Methods("GET")
-	s.HandleFunc("/tables", createTables).Methods("POST")
+	r := Routes("/api/v1", address, id)
 
 	srv := &http.Server{
 		Addr: address,
@@ -29,6 +22,26 @@ func Run(address string, id *identity.IDGen) {
 	}
 
 	log.Fatal(srv.ListenAndServe())
+}
+
+func Routes(apiPrefix string, address string, id *identity.IDGen) http.Handler {
+	r := mux.NewRouter()
+	r.Use(func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Add("Content-Type", "application/json")
+			next.ServeHTTP(w, r)
+		})
+	})
+	t := r.PathPrefix(apiPrefix).Subrouter()
+	t.HandleFunc("/tables", fetchTables).Methods("GET")
+	t.HandleFunc("/tables", createTables).Methods("POST")
+	t.Use(id.Middleware)
+
+	s := r.PathPrefix(apiPrefix).Subrouter()
+	s.HandleFunc("/users", id.IDHandler).Methods("POST")
+	s.HandleFunc("/users/{username}/token", id.TokenHandler).Methods("POST")
+
+	return r
 }
 
 func fetchTables(w http.ResponseWriter, r *http.Request) {
