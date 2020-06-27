@@ -56,7 +56,6 @@ func (i *IDGen) FetchRecord(username string, password string) (*db.Record, error
 
 func (i *IDGen) ValidateRecord(r *db.Record) error {
 	// Ensure all the fields are valid
-
 	if len(r.Username) == 0 {
 		return errors.New("Unset field: Username")
 	}
@@ -65,8 +64,14 @@ func (i *IDGen) ValidateRecord(r *db.Record) error {
 		return errors.New("Unset field: Password")
 	}
 	// Ensure no user with same username in the db
-	if record, _ := i.db.Get(db.DBKey(r.Username)); record != nil {
+	record, err := i.db.Get(db.DBKey(r.Username))
+
+	if record != nil {
 		return errors.New("User already exists in DB")
+	}
+
+	if err != nil {
+		return err
 	}
 
 	return nil

@@ -5,6 +5,7 @@ import (
 	"go_poker/internal/identity"
 	"go_poker/internal/identity/db"
 	"go_poker/internal/server"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -15,7 +16,8 @@ import (
 func TestUserCreation(t *testing.T) {
 	// Set up identity server
 	address := ":8080"
-	db := db.NewFileDB("./test.csv")
+	tmpfile, _ := ioutil.TempFile("", "test_db")
+	db := db.NewFileDB(tmpfile.Name())
 	id := identity.NewIDGen(db, "random")
 	handler := server.Routes("", address, id)
 
@@ -27,7 +29,6 @@ func TestUserCreation(t *testing.T) {
 	e := httpexpect.New(t, server.URL)
 
 	// TEST user creation.
-	e.POST("/users").Expect().Status(http.StatusBadRequest)
 	e.POST("/users").
 		WithForm(map[string]string{
 			"username": "joe",
@@ -50,10 +51,17 @@ func TestUserCreation(t *testing.T) {
 	// TEST token fetching
 	req := e.POST("/users").
 		WithForm(map[string]string{
-			"username": "joe",
+			"username": "joe1",
 			"password": "password",
 		}).
 		Expect().Status(http.StatusOK)
+	// Don't allow overwrite
+	e.POST("/users").
+		WithForm(map[string]string{
+			"username": "joe1",
+			"password": "password",
+		}).
+		Expect().Status(http.StatusBadRequest)
 
 	token := req.JSON().Object().Value("token").String().Raw()
 	fmt.Printf("TOKEN %s\n", token)

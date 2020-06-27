@@ -43,14 +43,3 @@ func Routes(apiPrefix string, address string, id *identity.IDGen) http.Handler {
 
 	return r
 }
-
-func fetchTables(w http.ResponseWriter, r *http.Request) {
-	//
-	//
-}
-
-func createTables(w http.ResponseWriter, r *http.Request) {
-	// TODO: Input validation
-	// 			Send out creation request
-	//			Send back table connection id
-}

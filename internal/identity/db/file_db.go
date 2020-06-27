@@ -2,6 +2,7 @@ package db
 
 import (
 	"encoding/csv"
+	"io"
 	"log"
 	"os"
 )
@@ -19,7 +20,7 @@ func _CSVToDBRecord(r []string) *Record {
 }
 
 func NewFileDB(path string) *FileDB {
-	file, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	file, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0755)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -30,6 +31,7 @@ func NewFileDB(path string) *FileDB {
 }
 
 func (f *FileDB) Get(key DBKey) (*Record, error) {
+	f.file.Seek(0, io.SeekStart)
 	reader := csv.NewReader(f.file)
 	records, err := reader.ReadAll()
 
@@ -39,7 +41,6 @@ func (f *FileDB) Get(key DBKey) (*Record, error) {
 
 	for _, recordCSV := range records {
 		record := _CSVToDBRecord(recordCSV)
-
 		if record.PrimaryKey() == key {
 			return record, nil
 		}
@@ -49,9 +50,11 @@ func (f *FileDB) Get(key DBKey) (*Record, error) {
 }
 
 func (f *FileDB) Insert(r *Record) error {
+	f.file.Seek(0, io.SeekEnd)
 	writer := csv.NewWriter(f.file)
 
 	err := writer.Write(r.ToCSVRecord())
+	writer.Flush()
 	return err
 }
 
