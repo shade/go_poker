@@ -2,7 +2,6 @@ package identity
 
 import (
 	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -11,6 +10,7 @@ import (
 	"time"
 
 	"go_poker/internal/identity/db"
+	"go_poker/internal/server/utils"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
@@ -107,27 +107,13 @@ func (i *IDGen) CreateToken(r *db.Record) string {
 	return token
 }
 
-type errorMsg struct {
-	Error string `json:"error"`
-}
-
 type tokenMsg struct {
 	Token string `json:"token"`
 }
 
-func writeJSON(w http.ResponseWriter, data interface{}, status int) {
-	dataStr, err := json.Marshal(data)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-	w.WriteHeader(status)
-	w.Write(dataStr)
-}
-
 func (i *IDGen) IDHandler(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		writeJSON(w, errorMsg{Error: "Could not parse form data"}, http.StatusBadRequest)
+		utils.WriteJSON(w, utils.ErrorMsg{Error: "Could not parse form data"}, http.StatusBadRequest)
 		return
 	}
 
@@ -138,7 +124,7 @@ func (i *IDGen) IDHandler(w http.ResponseWriter, r *http.Request) {
 
 	record := &db.Record{name, user, pass, base64.StdEncoding.EncodeToString(hash)}
 	if err := i.ValidateRecord(record); err != nil {
-		writeJSON(w, errorMsg{Error: err.Error()}, http.StatusBadRequest)
+		utils.WriteJSON(w, utils.ErrorMsg{Error: err.Error()}, http.StatusBadRequest)
 		return
 	}
 
@@ -146,17 +132,17 @@ func (i *IDGen) IDHandler(w http.ResponseWriter, r *http.Request) {
 	record.Password = ""
 
 	if err := i.db.Insert(record); err != nil {
-		writeJSON(w, errorMsg{Error: "Could not create new user DB error"}, http.StatusInternalServerError)
+		utils.WriteJSON(w, utils.ErrorMsg{Error: "Could not create new user DB error"}, http.StatusInternalServerError)
 		log.Println(err)
 		return
 	}
 
-	writeJSON(w, tokenMsg{Token: i.CreateToken(record)}, http.StatusOK)
+	utils.WriteJSON(w, tokenMsg{Token: i.CreateToken(record)}, http.StatusOK)
 }
 
 func (i *IDGen) TokenHandler(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		writeJSON(w, errorMsg{Error: "Could not parse form data"}, http.StatusBadRequest)
+		utils.WriteJSON(w, utils.ErrorMsg{Error: "Could not parse form data"}, http.StatusBadRequest)
 		return
 	}
 
@@ -166,18 +152,18 @@ func (i *IDGen) TokenHandler(w http.ResponseWriter, r *http.Request) {
 	record, err := i.FetchRecord(user, pass)
 
 	if err != nil {
-		writeJSON(w, errorMsg{Error: err.Error()}, http.StatusBadRequest)
+		utils.WriteJSON(w, utils.ErrorMsg{Error: err.Error()}, http.StatusBadRequest)
 		return
 	}
 
-	writeJSON(w, tokenMsg{Token: i.CreateToken(record)}, http.StatusOK)
+	utils.WriteJSON(w, tokenMsg{Token: i.CreateToken(record)}, http.StatusOK)
 }
 
 func (i *IDGen) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		splitToken := strings.Split(r.Header.Get(AUTH_HEADER), BEARER_SCHEMA)
 		if len(splitToken) != 2 {
-			writeJSON(w, errorMsg{Error: "Invalid bearer token"}, http.StatusForbidden)
+			utils.WriteJSON(w, utils.ErrorMsg{Error: "Invalid bearer token"}, http.StatusForbidden)
 			return
 		}
 
@@ -185,7 +171,7 @@ func (i *IDGen) Middleware(next http.Handler) http.Handler {
 		fmt.Println(token)
 		valid, _ := i.ParseToken(token)
 		if !valid {
-			writeJSON(w, errorMsg{Error: "Invalid bearer token"}, http.StatusForbidden)
+			utils.WriteJSON(w, utils.ErrorMsg{Error: "Invalid bearer token"}, http.StatusForbidden)
 		}
 		next.ServeHTTP(w, r)
 	})
