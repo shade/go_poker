@@ -27,7 +27,7 @@ message TableOptions {
     // The minimum number of chips required to join this table.
     uint64 min_buy = 3;
     // The maximum seats allowed at this table.
-    uint64 max_seats = 4;
+    uint32 max_seats = 4;
     // The big blind value, the small blind will be floor(big_blind/2).
     uint64 big_blind = 5;
     // If this is true the seats will be shuffled after the dealer is
@@ -39,11 +39,11 @@ message TableOptions {
     // Conversion to CAD; (rate chips) = $0.01 CAD.
     uint64 rate = 8;
     // Number of seconds to wait after some one goes bust, to rebuy. 
-    uint64 busted_rebuy_time = 9;
+    uint32 busted_rebuy_time = 9;
     // Number of seconds to wait between rounds.
-    uint64 round_delay = 10;
+    uint32 round_delay = 10;
     // The amount of time to wait before a hand action times out.
-    uint64 action_timeout = 11; 
+    uint32 action_timeout = 11; 
 }
 
 enum PlayerState {

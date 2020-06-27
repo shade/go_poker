@@ -2,6 +2,7 @@ package server
 
 import (
 	"go_poker/internal/identity"
+	"go_poker/internal/mediator/custodian"
 	"log"
 	"net/http"
 	"time"
@@ -24,7 +25,7 @@ func Run(address string, id *identity.IDGen) {
 	log.Fatal(srv.ListenAndServe())
 }
 
-func Routes(apiPrefix string, address string, id *identity.IDGen) http.Handler {
+func Routes(apiPrefix string, address string, id *identity.IDGen, c *custodian.Custodian) http.Handler {
 	r := mux.NewRouter()
 	r.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -32,9 +33,10 @@ func Routes(apiPrefix string, address string, id *identity.IDGen) http.Handler {
 			next.ServeHTTP(w, r)
 		})
 	})
+
 	t := r.PathPrefix(apiPrefix).Subrouter()
-	t.HandleFunc("/tables", fetchTables).Methods("GET")
-	t.HandleFunc("/tables", createTables).Methods("POST")
+	t.HandleFunc("/tables", c.FetchTables).Methods("GET")
+	t.HandleFunc("/tables", c.CreateTable).Methods("POST")
 	t.Use(id.Middleware)
 
 	s := r.PathPrefix(apiPrefix).Subrouter()
