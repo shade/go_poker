@@ -11,7 +11,7 @@ import (
 )
 
 func Run(address string, id *identity.IDGen) {
-	r := Routes("/api/v1", address, id)
+	r := Routes("/api/v1", address, id, nil)
 
 	srv := &http.Server{
 		Addr: address,

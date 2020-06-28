@@ -19,7 +19,7 @@ func TestUserCreation(t *testing.T) {
 	tmpfile, _ := ioutil.TempFile("", "test_db")
 	db := db.NewFileDB(tmpfile.Name())
 	id := identity.NewIDGen(db, "random")
-	handler := server.Routes("", address, id)
+	handler := server.Routes("", address, id, nil)
 
 	// run server using httptest
 	server := httptest.NewServer(handler)

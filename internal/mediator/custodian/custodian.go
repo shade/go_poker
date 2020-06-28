@@ -3,21 +3,24 @@
 package custodian
 
 import (
+	"encoding/json"
 	"errors"
-	. "go_poker/internal/interfaces"
+	_ "go_poker/internal/interfaces"
 	"go_poker/internal/mediator/cache"
 	msgpb "go_poker/internal/proto"
+	"go_poker/internal/server/utils"
+	"math"
 	"net/http"
 
-	"google.golang.org/protobuf/proto"
+	"github.com/golang/protobuf/proto"
 )
 
 type Custodian struct {
 	db cache.ICache
 }
 
-func NewCustodian(c ICache) {
-	return Custodian{c}
+func NewCustodian(c cache.ICache) *Custodian {
+	return &Custodian{c}
 }
 
 func (c *Custodian) createTable(opts *msgpb.TableOptions) error {
@@ -27,26 +30,27 @@ func (c *Custodian) createTable(opts *msgpb.TableOptions) error {
 		return errors.New("Could not serialize options, invalid.")
 	}
 
-	c.db.Push(opts.Name, optBytes)
+	c.db.Push(cache.CacheKey(opts.Name), cache.CacheValue(optBytes))
+
+	return nil
 }
 
-func (c *Custodian) getTables() proto.Message {
-	c := []*proto.Message{}
+func (c *Custodian) getTables() []*msgpb.TableOptions {
+	tables := []*msgpb.TableOptions{}
 
-	for key := range c.db.Keys() {
-		msg := msgpb.TableOptions{}
-		data := c.db.Get(key)
-		proto.Unmarshal(data, msg)
-
-		c = append(c, msg)
+	for _, name := range c.db.Keys() {
+		msg := &msgpb.TableOptions{}
+		data := c.db.Get(name)
+		proto.Unmarshal([]byte(data), msg)
+		tables = append(tables, msg)
 	}
 
-	return c
+	return tables
 }
 
-func (c *Custodian) validateTable(opts *msgpb.TableOptions{}) error {
+func (c *Custodian) validateTable(opts *msgpb.TableOptions) error {
 	// Check for duplicate keys
-	if c.db.Get(opts.Name) != nil {
+	if c.db.Get(cache.CacheKey(opts.Name)) != nil {
 		return errors.New("Table name already taken.")
 	}
 
@@ -72,22 +76,22 @@ func (c *Custodian) validateTable(opts *msgpb.TableOptions{}) error {
 func (c *Custodian) CreateTable(w http.ResponseWriter, r *http.Request) {
 	var opts msgpb.TableOptions
 
-    err := json.NewDecoder(r.Body).Decode(&opts)
-    if err != nil {
-        utils.WriteJSON(w, utils.ErrorMsg{Error: err.Error()}, http.StatusBadRequest)
-        return
-	}
-	
-	err = c.validateTable(opts)
-    if err != nil {
-        utils.WriteJSON(w, utils.ErrorMsg{Error: err.Error()}, http.StatusBadRequest)
-        return
+	err := json.NewDecoder(r.Body).Decode(&opts)
+	if err != nil {
+		utils.WriteJSON(w, utils.ErrorMsg{Error: err.Error()}, http.StatusBadRequest)
+		return
 	}
 
-	err = c.createTable(opts)
-    if err != nil {
-        utils.WriteJSON(w, utils.ErrorMsg{Error: err.Error()}, http.StatusBadRequest)
-        return
+	err = c.validateTable(&opts)
+	if err != nil {
+		utils.WriteJSON(w, utils.ErrorMsg{Error: err.Error()}, http.StatusBadRequest)
+		return
+	}
+
+	err = c.createTable(&opts)
+	if err != nil {
+		utils.WriteJSON(w, utils.ErrorMsg{Error: err.Error()}, http.StatusBadRequest)
+		return
 	}
 
 	utils.WriteJSON(w, nil, http.StatusOK)

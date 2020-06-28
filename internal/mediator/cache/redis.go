@@ -9,20 +9,23 @@ import (
 
 // Timeout is measured in nanoseconds
 const QUEUE_TIMEOUT = 3.154e+16
+const QUEUE_NAME = "table_queue"
 
 type RedisCache struct {
 	client *redis.Client
 	ctx    context.Context
+	queue  string
 }
 
-func NewRedisCache(address string, password string, db int) *RedisCache {
+func NewRedisCache(address string, password string, db int, queueName string) *RedisCache {
 	rq := &RedisCache{
 		client: redis.NewClient(&redis.Options{
 			Addr:     address,
 			Password: password,
 			DB:       db,
 		}),
-		ctx: context.Background(),
+		ctx:   context.Background(),
+		queue: queueName,
 	}
 
 	_, err := rq.client.Ping(rq.ctx).Result()
@@ -35,21 +38,26 @@ func NewRedisCache(address string, password string, db int) *RedisCache {
 
 func (rq *RedisCache) Poll(key CacheKey, values chan string) {
 	for {
-		val, err := rq.client.BLPop(rq.ctx, QUEUE_TIMEOUT, string(key)).Result()
-
+		result, err := rq.client.BLPop(rq.ctx, 0, rq.queue).Result()
 		if err != nil {
-			log.Fatalf(err)
+			continue
 		}
 
-		c <- val
+		values <- result[0]
 	}
 }
 
-// This is non-blocking.
 func (rq *RedisCache) Get(key CacheKey) CacheValue {
+	value, err := rq.client.Get(rq.ctx, string(key)).Result()
 
+	if err != nil {
+		return nil
+	}
+
+	return CacheValue(value)
 }
 
 func (rq *RedisCache) Push(key CacheKey, value CacheValue) {
-
+	rq.client.Set(rq.ctx, string(key), string(value), 0)
+	rq.client.LPush(rq.ctx, rq.queue, key)
 }
