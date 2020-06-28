@@ -5,13 +5,9 @@ type CacheValue []byte
 
 type ICache interface {
 	// This is blocking.
-	Poll() CacheValue
+	Poll(key CacheKey, values chan string)
 	// This is non-blocking.
 	Keys() []CacheKey
 	Get(key CacheKey) CacheValue
 	Push(key CacheKey, value CacheValue)
-	Update(key CacheKey, value CacheValue)
-
-	// Attempts to reconnect returns true if succssful
-	Reconnect() bool
 }

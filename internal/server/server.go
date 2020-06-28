@@ -3,6 +3,7 @@ package server
 import (
 	"go_poker/internal/identity"
 	"go_poker/internal/mediator/custodian"
+
 	"log"
 	"net/http"
 	"time"
@@ -10,8 +11,8 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func Run(address string, id *identity.IDGen) {
-	r := Routes("/api/v1", address, id, nil)
+func Run(address string, id *identity.IDGen, c *custodian.Custodian) {
+	r := Routes("/api/v1", address, id, c)
 
 	srv := &http.Server{
 		Addr: address,

@@ -1,10 +1,10 @@
 package id_test
 
 import (
-	"fmt"
 	"go_poker/internal/identity"
 	"go_poker/internal/identity/db"
 	"go_poker/internal/server"
+
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -64,7 +64,6 @@ func TestUserCreation(t *testing.T) {
 		Expect().Status(http.StatusBadRequest)
 
 	token := req.JSON().Object().Value("token").String().Raw()
-	fmt.Printf("TOKEN %s\n", token)
 	eAuth := e.Builder(func(req *httpexpect.Request) {
 		req.WithHeader("Authorization", "Bearer "+token)
 	})

@@ -12,6 +12,9 @@ all:
 test:
 	$(GOTEST) ./test/e2e/id_test.go
 
+test-config:
+	$(GORUN) ./cmd/client/client.go ./configs/test.yaml
+
 build:
 	protoc  --proto_path=$(PROTO_DIR) --go_out=$(PROTO_DIR) $(PROTO_DIR)/*.proto
 
