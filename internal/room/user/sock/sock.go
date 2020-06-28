@@ -2,8 +2,8 @@ package sock
 
 import (
 	"fmt"
-	. "go_poker/internal/interfaces"
-	msgpb "go_poker/internal/proto"
+	. "gopoker/internal/interfaces"
+	msgpb "gopoker/internal/proto"
 	"net/http"
 	"time"
 

@@ -1,7 +1,7 @@
 package poker
 
 import (
-	msgpb "go_poker/internal/proto"
+	msgpb "gopoker/internal/proto"
 
 	"google.golang.org/protobuf/proto"
 )

@@ -1,10 +1,10 @@
 package dealer
 
 import (
-	"go_poker/pkg/ringf"
-	. "go_poker/internal/interfaces"
-	msgpb "go_poker/internal/proto"
-    "go_poker/third_party/poker_hands"
+	"gopoker/pkg/ringf"
+	. "gopoker/internal/interfaces"
+	msgpb "gopoker/internal/proto"
+    "gopoker/third_party/poker_hands"
 )
 
 

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"go_poker/internal/config"
+	"gopoker/internal/config"
 	"os"
 )
 

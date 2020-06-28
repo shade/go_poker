@@ -1,8 +1,8 @@
 package server
 
 import (
-	"go_poker/internal/identity"
-	"go_poker/internal/mediator/custodian"
+	"gopoker/internal/identity"
+	"gopoker/internal/mediator/custodian"
 
 	"log"
 	"net/http"

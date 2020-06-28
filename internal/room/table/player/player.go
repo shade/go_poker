@@ -1,8 +1,8 @@
 package player
 
 import (
-	"go_poker/internal/room/user"
-	msgpb "go_poker/internal/proto"
+	"gopoker/internal/room/user"
+	msgpb "gopoker/internal/proto"
 )
 
 type Player struct {

@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"go_poker/internal/identity/db"
-	"go_poker/internal/server/utils"
+	"gopoker/internal/identity/db"
+	"gopoker/internal/server/utils"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"

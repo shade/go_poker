@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
-	"go_poker/internal/config"
-	"go_poker/internal/identity"
-	"go_poker/internal/identity/db"
-	"go_poker/internal/server"
+	"gopoker/internal/config"
+	"gopoker/internal/identity"
+	"gopoker/internal/identity/db"
+	"gopoker/internal/server"
 
 	"github.com/dgrijalva/jwt-go"
 )

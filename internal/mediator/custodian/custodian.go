@@ -5,10 +5,10 @@ package custodian
 import (
 	"encoding/json"
 	"errors"
-	_ "go_poker/internal/interfaces"
-	"go_poker/internal/mediator/cache"
-	msgpb "go_poker/internal/proto"
-	"go_poker/internal/server/utils"
+	_ "gopoker/internal/interfaces"
+	"gopoker/internal/mediator/cache"
+	msgpb "gopoker/internal/proto"
+	"gopoker/internal/server/utils"
 	"math"
 	"net/http"
 

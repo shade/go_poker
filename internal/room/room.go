@@ -1,11 +1,11 @@
 package room
 
 import (
-	msgpb "go_poker/internal/proto"
-	"go_poker/internal/room/user"
+	msgpb "gopoker/internal/proto"
+	"gopoker/internal/room/user"
 
 	"github.com/golang/protobuf/proto"
-	. "go_poker/internal/interfaces"
+	. "gopoker/internal/interfaces"
 )
 
 type Room struct {

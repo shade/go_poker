@@ -1,10 +1,10 @@
 package user
 
 import (
-	"go_poker/internal/room/user/sock"
-	"go_poker/pkg/pausabletimer"
+	"gopoker/internal/room/user/sock"
+	"gopoker/pkg/pausabletimer"
 
-	. "go_poker/internal/interfaces"
+	. "gopoker/internal/interfaces"
 
 	"github.com/golang/protobuf/proto"
 )

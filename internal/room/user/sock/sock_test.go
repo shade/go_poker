@@ -9,7 +9,7 @@ import (
 
 	"github.com/golang/protobuf/proto"
 
-	msgpb "go_poker/internal/proto"
+	msgpb "gopoker/internal/proto"
 
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"

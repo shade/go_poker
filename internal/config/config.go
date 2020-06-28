@@ -1,8 +1,8 @@
 package config
 
 import (
-	"go_poker/internal/identity/db"
-	"go_poker/internal/mediator/cache"
+	"gopoker/internal/identity/db"
+	"gopoker/internal/mediator/cache"
 	"io/ioutil"
 
 	"gopkg.in/yaml.v2"

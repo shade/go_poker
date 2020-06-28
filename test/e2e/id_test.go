@@ -1,9 +1,9 @@
 package id_test
 
 import (
-	"go_poker/internal/identity"
-	"go_poker/internal/identity/db"
-	"go_poker/internal/server"
+	"gopoker/internal/identity"
+	"gopoker/internal/identity/db"
+	"gopoker/internal/server"
 
 	"io/ioutil"
 	"net/http"

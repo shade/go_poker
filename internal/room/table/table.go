@@ -1,10 +1,10 @@
 package table
 
 import (
-	. "go_poker/internal/interfaces"
-	msgpb "go_poker/internal/proto"
-	"go_poker/internal/room/table/dealer"
-	"go_poker/pkg/ringf"
+	. "gopoker/internal/interfaces"
+	msgpb "gopoker/internal/proto"
+	"gopoker/internal/room/table/dealer"
+	"gopoker/pkg/ringf"
 
 	"math"
 	"math/rand"
