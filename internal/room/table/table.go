@@ -331,7 +331,7 @@ func (t *Table) Showdown() {
 		player := p.(IPlayer)
 
 		if player.IsInHand() {
-			player.ShowCards()
+			player.ShowHand(t)
 		}
 	})
 }
@@ -380,4 +380,14 @@ func (t *Table) isValidBuyin(amount uint64) bool {
 
 func (t *Table) ShuffleSeats() {
 	// TODO
+}
+
+func (t *Table) Players() []IPlayer {
+	players := []IPlayer{}
+
+	t.players.Do(func(v interface{}) {
+		players = append(players, v.(IPlayer))
+	})
+
+	return players
 }

@@ -56,10 +56,10 @@ func (r *Room) relayChat(user IUser, packet proto.Message) {
 
 func (r *Room) seatPlayer(u IUser, packet proto.Message) {
 	msg := packet.(*msgpb.ClientPacket).GetSit()
-	seat := msg.Seat()
+	seat := msg.GetSeat()
 	buyin := msg.GetBuyin()
 
-	err := r.table.SeatPlayer(player.NewPlayer(u, seat, buyin))
+	err := r.table.SeatPlayer(player.NewPlayer(u, buyin, seat))
 
 	if err != nil {
 		u.Send(&msgpb.ServerPacket{
@@ -76,7 +76,7 @@ func (r *Room) seatPlayer(u IUser, packet proto.Message) {
 			Payload: &msgpb.ServerPacket_PlayerSit{
 				PlayerSit: &msgpb.PlayerMessage_Sit{
 					PlayerId: u.GetID(),
-					Seat:     seat,
+					SeatNum:  seat,
 					Buyin:    buyin,
 				},
 			},
@@ -85,10 +85,16 @@ func (r *Room) seatPlayer(u IUser, packet proto.Message) {
 }
 
 func (r Room) allUsers() []IUser {
-	return append(r.watchers, r.table.GetPlayers()...)
+	tblUsers := []IUser{}
+
+	for _, player := range r.table.Players() {
+		tblUsers = append(tblUsers, player.User())
+	}
+
+	return append(r.watchers, tblUsers...)
 }
 
-func (r *Room) FindUser(string userId) IUser {
+func (r *Room) FindUser(userId string) IUser {
 	for _, user := range r.allUsers() {
 		if user.GetID() == userId {
 			return user

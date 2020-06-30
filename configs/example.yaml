@@ -6,10 +6,8 @@ table_keys:
 
 rest_api:
   port: 8080
-  redis:
-    username: joseph
-    password: thomas
-    db: 0
+  file:
+    path: lol
 
 socket_api:
   port: 8081

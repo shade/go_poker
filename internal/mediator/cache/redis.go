@@ -37,7 +37,7 @@ func NewRedisCache(address string, password string, db int, queue string, table 
 	return rq
 }
 
-func (rq *RedisCache) Poll(key CacheKey, values chan string) {
+func (rq *RedisCache) Poll(values chan string) {
 	for {
 		result, err := rq.client.BRPopLPush(rq.ctx, rq.queue, rq.table, 0).Result()
 

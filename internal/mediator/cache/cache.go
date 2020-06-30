@@ -5,7 +5,7 @@ type CacheValue []byte
 
 type ICache interface {
 	// This is blocking.
-	Poll(key CacheKey, values chan string)
+	Poll(values chan string)
 	// This is non-blocking.
 	Keys() []CacheKey
 	Get(key CacheKey) CacheValue

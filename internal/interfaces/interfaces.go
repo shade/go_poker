@@ -2,7 +2,11 @@
 // between packages that use concrete implementations
 package interfaces
 
-import "github.com/golang/protobuf/proto"
+import (
+	"net/http"
+
+	"github.com/golang/protobuf/proto"
+)
 
 type ObserverCallback func(proto.Message)
 type ICard interface {
@@ -16,17 +20,23 @@ type ISock interface {
 	RegisterObserver(proto.GeneratedEnum, ObserverCallback)
 	// Deregisters all observers for a specific event
 	DeregisterObservers(proto.GeneratedEnum)
+	// Add an http connection to the sockets listening
+	AddConnection(w http.ResponseWriter, r *http.Request)
 }
 
-type IUser interface {
-	GetID() string
-	RegisterObserver(proto.GeneratedEnum, func(IUser, proto.Message))
-	IgnoreUser(proto.GeneratedEnum)
+type Sendable interface {
 	Send(proto.Message)
 }
 
 type Broadcastable interface {
 	Broadcast(proto.Message)
+}
+
+type IUser interface {
+	Sendable
+	GetID() string
+	RegisterObserver(proto.GeneratedEnum, func(IUser, proto.Message))
+	IgnoreUser(proto.GeneratedEnum)
 }
 
 // IPlayer is a subtype of IUser giving all the
@@ -42,7 +52,8 @@ type IPlayer interface {
 	Fold()
 	Shove() uint64
 	IsInHand() bool
-	ShowHand() proto.Message
+	ShowHand(Broadcastable)
+	User() IUser
 
 	WatchPlayer(proto.GeneratedEnum, func(IPlayer, proto.Message))
 	IgnorePlayer(proto.GeneratedEnum)
@@ -58,4 +69,5 @@ type IRoom interface {
 type ITable interface {
 	Broadcastable
 	SeatPlayer(IPlayer) error
+	Players() []IPlayer
 }

@@ -3,13 +3,12 @@ package player
 import (
 	. "gopoker/internal/interfaces"
 	msgpb "gopoker/internal/proto"
-	"gopoker/internal/room/user"
 
 	"github.com/golang/protobuf/proto"
 )
 
 type Player struct {
-	*user.User
+	IUser
 
 	balance uint64
 	state   msgpb.PlayerState
@@ -18,9 +17,9 @@ type Player struct {
 	hand    [2]ICard
 }
 
-func NewPlayer(u *user.User, balance uint64, seat uint32) *Player {
+func NewPlayer(u IUser, balance uint64, seat uint32) *Player {
 	p := &Player{
-		User:    u,
+		IUser:   u,
 		balance: balance,
 		state:   msgpb.PlayerState_PENDING,
 		inPot:   0,
@@ -90,21 +89,9 @@ func (p *Player) IsStanding() bool {
 	return p.state == msgpb.PlayerState_STOOD_UP
 }
 
-func (p *Player) StartGame(msg *msgpb.ActionMessage) {
-	if !p.table.IsStarted() {
-		p.table.Start()
-	}
-}
-
-func (p *Player) EndGame(msg *msgpb.ActionMessage) {
-	if p.table.IsStarted() {
-		p.table.End()
-	}
-}
-
 func (p *Player) Serialize() proto.Message {
-	return msgpb.Player{
-		Name:    p.Name,
+	return &msgpb.Player{
+		Name:    p.GetID(),
 		Balance: p.balance,
 		State:   p.state,
 		SeatNum: p.seat,
@@ -112,26 +99,32 @@ func (p *Player) Serialize() proto.Message {
 }
 
 func (p *Player) SetHand(left ICard, right ICard) {
-	p.hand = []ICard{left, right}
+	p.hand = [2]ICard{left, right}
 
-	p.Send(msgpb.Packet{
-		Event: msgpb.EventType_HAND,
-		Payload: msgpb.Packet_Hand{
-			Hand: &msgpb.CardSet{
-				Cards: []msgpb.Card{
-					left.Serialize(),
-					right.Serialize(),
-				},
+	p.Send(&msgpb.ServerPacket{
+		Event: msgpb.ServerEvent_HAND,
+		Payload: &msgpb.ServerPacket_Hand{
+			Hand: p.getHand(),
+		},
+	})
+}
+
+func (p *Player) ShowHand(b Broadcastable) {
+	b.Broadcast(&msgpb.ServerPacket{
+		Event: msgpb.ServerEvent_PLAYER_SHOW,
+		Payload: &msgpb.ServerPacket_PlayerShow{
+			PlayerShow: &msgpb.PlayerMessage_Show{
+				Cards: p.getHand(),
 			},
 		},
 	})
 }
 
-func (p *Player) ShowHand() proto.Message {
+func (p *Player) getHand() *msgpb.CardSet {
 	return &msgpb.CardSet{
-		Cards: []msgpb.Card{
-			left.Serialize(),
-			right.Serialize(),
+		Cards: []*msgpb.Card{
+			p.hand[0].Serialize().(*msgpb.Card),
+			p.hand[1].Serialize().(*msgpb.Card),
 		},
 	}
 }
@@ -142,4 +135,8 @@ func (p *Player) Fold() {
 
 func (p *Player) isFolded() bool {
 	return p.state == msgpb.PlayerState_FOLD
+}
+
+func (p *Player) User() IUser {
+	return p.IUser
 }

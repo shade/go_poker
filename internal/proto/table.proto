@@ -61,11 +61,11 @@ message Player {
     // The public id of the player.
     string name = 1;
     // The number of chips this player has currently has.
-    int64 balance = 2;
+    uint64 balance = 2;
     // The current player state.
     PlayerState state = 3;
     // The position of seat this player is currently occupying, zero indexed.
-    int32 seat_num = 4;
+    uint32 seat_num = 4;
 }
 
 message Card {
