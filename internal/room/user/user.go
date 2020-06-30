@@ -23,7 +23,7 @@ func NewUser(id string) IUser {
 	}
 }
 
-func (u *User) GetID() string {
+func (u User) GetID() string {
 	return u.id
 }
 
@@ -31,7 +31,7 @@ func (u *User) Send(msg proto.Message) {
 	u.sock.Write(msg)
 }
 
-func (u *User) WatchUser(msgType proto.GeneratedEnum, cb func(IUser, proto.Message)) {
+func (u *User) RegisterObserver(msgType proto.GeneratedEnum, cb func(IUser, proto.Message)) {
 	u.sock.RegisterObserver(msgType, func(msg proto.Message) {
 		cb(u, msg)
 	})

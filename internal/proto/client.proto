@@ -1,7 +1,6 @@
 syntax = "proto3";
 
 option go_package = "messages";
-import "table.proto";
 
 /**
  * @exclude
@@ -50,11 +49,17 @@ message ClientPacket {
     ClientEvent event = 1;
     oneof payload {
         PingMessage ping = 2;
+        ChatMessage chat = 3;
+        SitMessage sit = 4;
     }
 }
 
 message PingMessage {
     int32 timestamp = 1;
+}
+
+message ChatMessage {
+    string data = 1;
 }
 
 message SitMessage {
@@ -70,14 +75,19 @@ message ClientOptions {
 
 
 enum ClientActionType {
+    REJECT = 0;
+
     FOLD = 1;
-    CALL = 2;
-    BET = 2;
-    ALL_IN = 3;
+    CHECK = 2;
+    CALL = 3;
+    BET = 4;
+    RAISE = 5;
+    ALL_IN = 6;
 }
 
 message ActionMessage {
-    ActionType action = 1;
+    ClientActionType action = 1;
     // Optional - only used for BET and RAISE.
     uint64 chips = 2;
+    uint32 nonce = 3;
 }

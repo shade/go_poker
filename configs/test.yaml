@@ -1,11 +1,15 @@
+token_secret: lol
+
 table_keys:
   queue: table_queue
   store: table_store
 
 rest_api:
   port: 8080
-  file:
-    path: lol
+  redis:
+    username: joseph
+    password: thomas
+    db: 0
 
 socket_api:
   port: 8081

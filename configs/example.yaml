@@ -1,3 +1,5 @@
+token_secret: lol
+
 table_keys:
   queue: table_queue
   store: table_store

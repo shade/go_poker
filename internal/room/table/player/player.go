@@ -1,44 +1,62 @@
 package player
 
 import (
-	"gopoker/internal/room/user"
+	. "gopoker/internal/interfaces"
 	msgpb "gopoker/internal/proto"
+	"gopoker/internal/room/user"
+
+	"github.com/golang/protobuf/proto"
 )
 
 type Player struct {
 	*user.User
 
 	balance uint64
-	inPot uint64
 	state   msgpb.PlayerState
-	seat uint64
-	hand [2]ICard
+	inPot   uint64
+	seat    uint32
+	hand    [2]ICard
 }
 
-func NewPlayer(u *user.User, balance, seat) *Player {
+func NewPlayer(u *user.User, balance uint64, seat uint32) *Player {
 	p := &Player{
-		u,
-		balance,
-		msgpb.PlayerState_PENDING,
+		User:    u,
+		balance: balance,
+		state:   msgpb.PlayerState_PENDING,
+		inPot:   0,
+		seat:    seat,
+		hand:    [2]ICard{},
 	}
-
 
 	return p
 }
 
+func (p Player) Balance() uint64 {
+	return p.balance
+}
+
+func (p Player) Seat() uint32 {
+	return p.seat
+}
+
 func (p *Player) WatchPlayer(event proto.GeneratedEnum, cb func(IPlayer, proto.Message)) {
-	p.RegisterObserver(event, func(i interface{}, msg proto.Message) {
-		cb(i.(IPlayer), msg.())
+	p.RegisterObserver(event, func(_ IUser, msg proto.Message) {
+		cb(p, msg)
 	})
 }
 
+func (p *Player) IgnorePlayer(event proto.GeneratedEnum) {
+	p.IgnoreUser(event)
+}
 
-
-func (p *Player) SetSeat(int32 seat) {
+func (p *Player) IsInHand() bool {
+	return !p.IsStanding() && !p.isFolded()
+}
+func (p *Player) SetSeat(seat uint32) {
 	p.seat = seat
 }
 
-func (p *Player) MakeBet(uint64 amount) uint64 {
+func (p *Player) MakeBet(amount uint64) uint64 {
 	if amount >= p.balance {
 		return p.Shove()
 	} else {
@@ -50,7 +68,7 @@ func (p *Player) MakeBet(uint64 amount) uint64 {
 	return amount
 }
 
-func (p *Player) Shove() uint64{
+func (p *Player) Shove() uint64 {
 	val := p.balance
 	p.inPot = val
 	p.balance = 0
@@ -68,68 +86,60 @@ func (p *Player) IsAllIn() bool {
 func (p *Player) IsBusted() bool {
 	return p.balance == 0
 }
+func (p *Player) IsStanding() bool {
+	return p.state == msgpb.PlayerState_STOOD_UP
+}
 
-func (p *Player) StartGame(msg *msgpb.ActionMsg) {
+func (p *Player) StartGame(msg *msgpb.ActionMessage) {
 	if !p.table.IsStarted() {
 		p.table.Start()
 	}
 }
 
-func (p *Player) EndGame(msg *msgpb.ActionMsg) {
+func (p *Player) EndGame(msg *msgpb.ActionMessage) {
 	if p.table.IsStarted() {
 		p.table.End()
 	}
 }
 
-func (p *Player) ProcessAction(msg *msgpb.ActionMsg) {
-	p.table.timer.Pause()
-
-	switch msg.Type {
-		case msgpb.Call
-		case msgpb.ActionType_ALL_IN:
-			p.table.BubbleAction(action)
-			p.Shove()
-		case msgpb.ActionType_CALL:
-
-		case msgpb.ActionType_RAISE:
-			// Reject too large and small bets
-			if p.table.IsValidBet(p.bet) {
-				p.MakeBet(p)	
-			}
-		default:
-			// Rejection message
-
-	}
-
-	p.table.timer.Resume()
-}
-
-
 func (p *Player) Serialize() proto.Message {
-	return msgpb.Player {
-		Name: p.Name,
+	return msgpb.Player{
+		Name:    p.Name,
 		Balance: p.balance,
-		State: p.state,
+		State:   p.state,
 		SeatNum: p.seat,
 	}
 }
 
-func (p *Player) SetHand(hand [2]ICard) {
-	p.hand = hand
+func (p *Player) SetHand(left ICard, right ICard) {
+	p.hand = []ICard{left, right}
 
-	p.Send(msgpb.Packet {
+	p.Send(msgpb.Packet{
 		Event: msgpb.EventType_HAND,
 		Payload: msgpb.Packet_Hand{
-			Hand: &msgpb.CardSet {
+			Hand: &msgpb.CardSet{
 				Cards: []msgpb.Card{
-					hand[0].Serialize(),
-					hand[1].Serialize(),
-				}
-			}
-		}	
+					left.Serialize(),
+					right.Serialize(),
+				},
+			},
+		},
 	})
 }
 
-func (p *Player) ShowHand(b Broadcastable) {
-	c
+func (p *Player) ShowHand() proto.Message {
+	return &msgpb.CardSet{
+		Cards: []msgpb.Card{
+			left.Serialize(),
+			right.Serialize(),
+		},
+	}
+}
+
+func (p *Player) Fold() {
+	p.state = msgpb.PlayerState_FOLD
+}
+
+func (p *Player) isFolded() bool {
+	return p.state == msgpb.PlayerState_FOLD
 }

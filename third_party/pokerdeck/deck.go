@@ -1,4 +1,4 @@
-package poker
+package pokerdeck
 
 import (
 	"math/rand"

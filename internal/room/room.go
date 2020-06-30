@@ -1,23 +1,27 @@
 package room
 
 import (
+	. "gopoker/internal/interfaces"
 	msgpb "gopoker/internal/proto"
-	"gopoker/internal/room/user"
+
+	"gopoker/internal/room/table"
+	"gopoker/internal/room/table/player"
+
+	"time"
 
 	"github.com/golang/protobuf/proto"
-	. "gopoker/internal/interfaces"
 )
 
 type Room struct {
-	watchers []*user.User
-	table    *ITable
-	msgCount int64
+	watchers []IUser
+	table    ITable
+	msgCount uint32
 }
 
-func NewRoom(opts table.Options) *Room {
-	r = &Room{
+func NewRoom(opts *msgpb.TableOptions) *Room {
+	r := &Room{
 		table:    nil,
-		watchers: []IPlayer{},
+		watchers: []IUser{},
 		msgCount: 0,
 	}
 
@@ -26,54 +30,65 @@ func NewRoom(opts table.Options) *Room {
 	return r
 }
 
-func (r *Room) AddUser(user *user.User) {
+func (r *Room) AddUser(user IUser) {
 	r.watchers = append(r.watchers, user)
 
-	user.RegisterObserver(msgpb.EventType_CHAT_MSG_SEND, r.relayChat)
-	user.RegisterObserver(msgpb.EventType_TABLE_SIT, r.seatPlayer)
+	user.RegisterObserver(msgpb.ClientEvent_MSG, r.relayChat)
+	user.RegisterObserver(msgpb.ClientEvent_SIT_DOWN, r.seatPlayer)
 }
 
-func (r *Room) relayChat(user *User, packet msgpb.Packet) {
-	msg := packet.GetMsgSend()
+func (r *Room) relayChat(user IUser, packet proto.Message) {
+	msg := packet.(*msgpb.ClientPacket).GetChat()
+	r.msgCount += 1
 
-	r.Broadcast(msgpb.Packet{
-		Event: msgpb.EventType_CHAT_MSG_RECV,
-		MsgRecv: msgpb.ChatMsgRecv{
-			MessageId: r.msgCount++,
-			UserId:  user.GetID(),
-			Data: msg.Data,
-			Timestamp: int32(time.Now().Unix())
-		}
+	r.Broadcast(&msgpb.ServerPacket{
+		Event: msgpb.ServerEvent_PLAYER_MSG,
+		Payload: &msgpb.ServerPacket_Chat{
+			Chat: &msgpb.PlayerMessage_Chat{
+				PlayerId:  user.GetID(),
+				Data:      msg.Data,
+				MessageId: r.msgCount,
+				Timestamp: uint32(time.Now().Unix()),
+			},
+		},
 	})
 }
 
-func (r *Room) seatPlayer(user *User, packet msgpb.Packet) {
-	msg := packet.GetSitMessage()
-	seat, err := r.table.Sit(user, msg.SeatNum, msg.Buyin)
+func (r *Room) seatPlayer(u IUser, packet proto.Message) {
+	msg := packet.(*msgpb.ClientPacket).GetSit()
+	seat := msg.Seat()
+	buyin := msg.GetBuyin()
+
+	err := r.table.SeatPlayer(player.NewPlayer(u, seat, buyin))
 
 	if err != nil {
-		u.Send(msgpb.Packet{
-			Event: msgpb.EventType_TABLE_SIT_ACK,
-			SitAckt: msgpb.SitAck{
-				SatDown: false,
-				Reason: err.Error(),
-			}
+		u.Send(&msgpb.ServerPacket{
+			Event: msgpb.ServerEvent_PLAYER_SIT_REJECT,
+			Payload: &msgpb.ServerPacket_SitReject{
+				SitReject: &msgpb.PlayerMessage_SitReject{
+					Reason: err.Error(),
+				},
+			},
 		})
 	} else {
-		r.Broadcast(msgpb.Packet{
-			Event: msgpb.EventType_TABLE_SIT_ACK,
-			SitAck: msgpb.SitAck{
-				SatDown: true,
+		r.Broadcast(&msgpb.ServerPacket{
+			Event: msgpb.ServerEvent_PLAYER_SIT,
+			Payload: &msgpb.ServerPacket_PlayerSit{
+				PlayerSit: &msgpb.PlayerMessage_Sit{
+					PlayerId: u.GetID(),
+					Seat:     seat,
+					Buyin:    buyin,
+				},
 			},
 		})
 	}
 }
 
-func (r Room) allUsers() []*user.User {
+func (r Room) allUsers() []IUser {
 	return append(r.watchers, r.table.GetPlayers()...)
 }
 
-func (r *Room) FindUser(string userId) *user.User {
+func (r *Room) FindUser(string userId) IUser {
 	for _, user := range r.allUsers() {
 		if user.GetID() == userId {
 			return user

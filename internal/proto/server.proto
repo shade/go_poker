@@ -26,6 +26,7 @@ enum ServerEvent {
     PLAYER_SHOW = 34;
     PLAYER_ACTION = 35;
     PLAYER_MSG = 36;
+    PLAYER_SIT_REJECT = 37;
     
     STATUS_MSG = 64;
 }
@@ -39,7 +40,7 @@ message ServerPacket {
         table.CardSet flop = 5;
         table.CardSet turn = 6;
         table.CardSet river = 7;
-        ActionRequest action_req = 8;
+        ActionRequest action_request = 8;
         ActionAck action_ack = 9;
 
         PlayerMessage.Sit player_sit = 10;
@@ -47,8 +48,9 @@ message ServerPacket {
         PlayerMessage.Show player_show = 12;
         //PlayerMessage.Action player_action = 13;
         PlayerMessage.Chat chat = 14;
+        PlayerMessage.SitReject sit_reject = 15;
 
-        TableStatusMessage status = 15;
+        TableStatusMessage status = 16;
     }
 }
 
@@ -57,7 +59,7 @@ message PongMessage {
     uint32 timestamp = 1;
 }
 
-message ActionPing {
+message ActionRequest {
     string seat_num = 1;
     uint64 min_bet = 2;
     uint32 expire = 3;
@@ -81,6 +83,10 @@ message PlayerMessage {
         string player_id = 1;
         uint32 seat_num = 2;
         uint64 buyin = 3;
+    }
+
+    message SitReject {
+        string reason = 1;
     }
 
     message Stand {

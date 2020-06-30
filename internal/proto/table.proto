@@ -53,6 +53,8 @@ enum PlayerState {
     RAISED = 3;
     CALLED = 4;
     ALL_IN = 5;
+
+    STOOD_UP = 10;
 }
 
 message Player {

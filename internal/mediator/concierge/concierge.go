@@ -4,7 +4,7 @@ package concierge
 import (
 	"gopoker/internal/identity"
 	"gopoker/internal/room"
-	"gopoker/internal/cache"
+	"gopoker/internal/mediator/cache"
 	"net/http"
 )
 

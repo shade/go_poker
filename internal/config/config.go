@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"gopoker/internal/identity/db"
 	"gopoker/internal/mediator/cache"
 	"io/ioutil"
@@ -11,7 +12,8 @@ import (
 type DBType int
 
 type yamlConfig struct {
-	TableKeys *struct {
+	TokenSecret string `yaml:"token_secret"`
+	TableKeys   *struct {
 		Queue string `yaml: "queue"`
 		Store string `yaml: "store"`
 	} `yaml:"table_keys"`
@@ -37,6 +39,8 @@ type yamlConfig struct {
 }
 
 type Config struct {
+	secret string
+
 	tableStore string
 	tableQueue string
 
@@ -59,6 +63,17 @@ func (c Config) GetDB() db.IIDB {
 	return c.db
 }
 
+func (c Config) GetSocketPort() int {
+	return c.socketPort
+}
+
+func (c Config) GetAPIAddress() string {
+	return fmt.Sprintf(":%d", c.restAPIPort)
+}
+
+func (c Config) GetTokenSecret() string {
+	return c.secret
+}
 func ParseFromPath(path string) *Config {
 	content, err := ioutil.ReadFile(path)
 
@@ -117,6 +132,12 @@ func Parse(content string) *Config {
 	} else {
 		panic("Invalid Cache config set for Socket API")
 	}
+
+	if input.TokenSecret == "" {
+		panic("Token Secret is not set.")
+	}
+
+	config.secret = input.TokenSecret
 	config.tableStore = input.TableKeys.Store
 	config.tableQueue = input.TableKeys.Queue
 

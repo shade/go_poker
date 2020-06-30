@@ -1,9 +1,9 @@
-package poker
+package pokerdeck
 
 import (
 	msgpb "gopoker/internal/proto"
 
-	"google.golang.org/protobuf/proto"
+	"github.com/golang/protobuf/proto"
 )
 
 type Card int32
@@ -109,7 +109,7 @@ func primeProductFromRankBits(rankBits int32) int32 {
 }
 
 func (c Card) Serialize() proto.Message {
-	return msgpb.Card{
+	return &msgpb.Card{
 		Suit: string(intSuitToCharSuit[c.Suit()]),
 		Rank: c.Rank(),
 	}

@@ -71,7 +71,7 @@ func NewSock() *Sock {
 		observers:   make(map[proto.GeneratedEnum][]ObserverCallback),
 	}
 
-	s.RegisterObserver(msgpb.EventType_PING, s.pong)
+	s.RegisterObserver(msgpb.ClientEvent_PING, s.pong)
 	return s
 }
 
@@ -151,7 +151,7 @@ func (s *Sock) read(conn *SocketConn) {
 		}
 
 		var parseErr error
-		msg := &msgpb.Packet{}
+		msg := &msgpb.ClientPacket{}
 		// Parse as JSON or raw proto
 		if conn.IsJSON {
 			parseErr = jsonpb.UnmarshalString(string(msgBytes), msg)
@@ -181,14 +181,14 @@ func (s *Sock) write(conn *SocketConn) {
 	}
 }
 
-func (s *Sock) notifyObservers(msg *msgpb.Packet) {
+func (s *Sock) notifyObservers(msg *msgpb.ClientPacket) {
 	for _, observerCB := range s.observers[msg.Event] {
 		observerCB(msg)
 	}
 }
 
 func (s *Sock) pong(_ proto.Message) {
-	s.Write(&msgpb.Packet{
-		Event: msgpb.EventType_PONG,
+	s.Write(&msgpb.ServerPacket{
+		Event: msgpb.ServerEvent_PONG,
 	})
 }

@@ -19,7 +19,8 @@ type ISock interface {
 }
 
 type IUser interface {
-	WatchUser(proto.GeneratedEnum, func(IUser, proto.Message))
+	GetID() string
+	RegisterObserver(proto.GeneratedEnum, func(IUser, proto.Message))
 	IgnoreUser(proto.GeneratedEnum)
 	Send(proto.Message)
 }
@@ -32,11 +33,19 @@ type Broadcastable interface {
 // poker playing functionality to an IUser
 type IPlayer interface {
 	IUser
-	SetHand([2]ICard)
+	SetHand(ICard, ICard)
+	IsBusted() bool
+	IsStanding() bool
+	Balance() uint64
+	Seat() uint32
+	MakeBet(uint64) uint64
+	Fold()
+	Shove() uint64
+	IsInHand() bool
+	ShowHand() proto.Message
 
 	WatchPlayer(proto.GeneratedEnum, func(IPlayer, proto.Message))
 	IgnorePlayer(proto.GeneratedEnum)
-	ShowHand(Broadcastable)
 }
 
 // IRoom is the interface for the room itself
@@ -44,11 +53,9 @@ type IPlayer interface {
 // room but not the table or game itself.
 type IRoom interface {
 	Broadcastable
-	SeatPlayer(IPlayer, int)
 }
 
 type ITable interface {
 	Broadcastable
-	SeatPlayer(IPlayer)
-	IsValidBuyin(int64) bool
+	SeatPlayer(IPlayer) error
 }
