@@ -14,14 +14,14 @@ type PausableTimer struct {
 }
 
 // Converts milliseconds to nanoseconds
-func msToNs(ms int64) int64 {
-	return ms * 1000000
+func MsToDuration(ms int64) time.Duration {
+	return time.Duration(ms * 1000000)
 }
 
 // New creates a PausableTimer based on a millisecond
 // count and a callback set to run after
 func New(ms int64, cb func()) *PausableTimer {
-	t := time.Duration(msToNs(ms))
+	t := MsToDuration(ms)
 
 	now := time.Now()
 	timer := time.AfterFunc(t, cb)
@@ -40,7 +40,7 @@ func (p *PausableTimer) Reset(ms int64) bool {
 	if !p.isExpired() && !p.paused {
 		return false
 	}
-	t := time.Duration(msToNs(ms))
+	t := MsToDuration(ms)
 
 	p.paused = false
 	p.ending = time.Now().Add(t)

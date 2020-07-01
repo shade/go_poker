@@ -129,6 +129,10 @@ func (p *Player) getHand() *msgpb.CardSet {
 	}
 }
 
+func (p *Player) Hand() (ICard, ICard) {
+	return p.hand[0], p.hand[1]
+}
+
 func (p *Player) Fold() {
 	p.state = msgpb.PlayerState_FOLD
 }
@@ -139,4 +143,17 @@ func (p *Player) isFolded() bool {
 
 func (p *Player) User() IUser {
 	return p.IUser
+}
+
+func (p *Player) InPot() uint64 {
+	return p.inPot
+}
+
+func (p *Player) Reset() {
+	p.inPot = 0
+	p.state = msgpb.PlayerState_PENDING
+}
+
+func (p *Player) AddChips(chips uint64) {
+	p.balance += chips
 }

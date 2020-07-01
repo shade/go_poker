@@ -45,6 +45,7 @@ type IPlayer interface {
 	IUser
 	SetHand(ICard, ICard)
 	IsBusted() bool
+	IsAllIn() bool
 	IsStanding() bool
 	Balance() uint64
 	Seat() uint32
@@ -53,7 +54,11 @@ type IPlayer interface {
 	Shove() uint64
 	IsInHand() bool
 	ShowHand(Broadcastable)
+	Hand() (ICard, ICard)
 	User() IUser
+	InPot() uint64
+	AddChips(uint64)
+	Reset()
 
 	WatchPlayer(proto.GeneratedEnum, func(IPlayer, proto.Message))
 	IgnorePlayer(proto.GeneratedEnum)
@@ -64,6 +69,7 @@ type IPlayer interface {
 // room but not the table or game itself.
 type IRoom interface {
 	Broadcastable
+	BroadcastStatus(string)
 }
 
 type ITable interface {

@@ -109,3 +109,22 @@ func (r *Room) Broadcast(msg proto.Message) {
 		user.Send(msg)
 	}
 }
+
+func (r *Room) BroadcastStatus(status string) {
+	r.msgCount += 1
+
+	r.Broadcast(&msgpb.ServerPacket{
+		Event: msgpb.ServerEvent_STATUS_MSG,
+		Payload: &msgpb.ServerPacket_Status{
+			Status: &msgpb.TableStatusMessage{
+				MessageId: r.msgCount,
+				Data:      "GAME OVER",
+				Timestamp: uint32(time.Now().Unix()),
+			},
+		},
+	})
+}
+
+func (r *Room) Table() ITable {
+	return r.table
+}

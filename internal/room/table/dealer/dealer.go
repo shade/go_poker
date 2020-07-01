@@ -11,26 +11,26 @@ type Dealer struct {
 	deck *pokerdeck.Deck
 
 	runs   int
-	flops  [][]ICard
-	turns  []ICard
-	rivers []ICard
+	flops  [][]pokerdeck.Card
+	turns  []pokerdeck.Card
+	rivers []pokerdeck.Card
 }
 
 func NewDealer() *Dealer {
 	return &Dealer{
 		deck:   pokerdeck.NewDeck(),
 		runs:   1,
-		flops:  [][]ICard{},
-		turns:  []ICard{},
-		rivers: []ICard{},
+		flops:  [][]pokerdeck.Card{},
+		turns:  []pokerdeck.Card{},
+		rivers: []pokerdeck.Card{},
 	}
 }
 
 func (d *Dealer) DealHands(seats *ringf.RingF) {
 	d.deck.Shuffle()
-	d.flops = [][]ICard{}
-	d.turns = []ICard{}
-	d.rivers = []ICard{}
+	d.flops = [][]pokerdeck.Card{}
+	d.turns = []pokerdeck.Card{}
+	d.rivers = []pokerdeck.Card{}
 
 	seats.Do(func(p interface{}) {
 		hand := d.deck.Draw(2)
@@ -39,7 +39,7 @@ func (d *Dealer) DealHands(seats *ringf.RingF) {
 }
 
 func (d *Dealer) DealFlop(b Broadcastable) {
-	d.flops = make([][]ICard, d.runs)
+	d.flops = make([][]pokerdeck.Card, d.runs)
 
 	for i := 0; i < d.runs; i++ {
 		flop := []*msgpb.Card{}
@@ -60,7 +60,7 @@ func (d *Dealer) DealFlop(b Broadcastable) {
 }
 
 func (d *Dealer) DealTurn(b Broadcastable) {
-	d.turns = make([]ICard, d.runs)
+	d.turns = make([]pokerdeck.Card, d.runs)
 
 	for i := 0; i < d.runs; i++ {
 		card := d.deck.Draw(1)[0]
@@ -79,7 +79,7 @@ func (d *Dealer) DealTurn(b Broadcastable) {
 }
 
 func (d *Dealer) DealRiver(b Broadcastable) {
-	d.turns = make([]ICard, d.runs)
+	d.turns = make([]pokerdeck.Card, d.runs)
 
 	for i := 0; i < d.runs; i++ {
 		card := d.deck.Draw(1)[0]
@@ -95,4 +95,28 @@ func (d *Dealer) DealRiver(b Broadcastable) {
 			},
 		})
 	}
+}
+
+func (d *Dealer) BestHands(seats *ringf.RingF) []IPlayer {
+	best := []IPlayer{}
+	bestHand := int32(0)
+
+	seats.Do(func(p interface{}) {
+		left, right := p.(IPlayer).Hand()
+
+		if !p.(IPlayer).IsInHand() {
+			return
+		}
+
+		handVal := pokerdeck.Evaluate(append(d.flops[0], d.turns[0], d.rivers[0], left.(pokerdeck.Card), right.(pokerdeck.Card)))
+
+		if bestHand < handVal {
+			bestHand = handVal
+			best = []IPlayer{p.(IPlayer)}
+		} else if bestHand == handVal {
+			best = append(best, p.(IPlayer))
+		}
+	})
+
+	return best
 }

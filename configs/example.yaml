@@ -5,12 +5,12 @@ table_keys:
   store: table_store
 
 rest_api:
-  port: 8080
+  port: 8081
   file:
     path: lol
 
 socket_api:
-  port: 8081
+  port: 6379
   redis:
     username: 
     password: 

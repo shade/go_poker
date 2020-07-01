@@ -7,6 +7,7 @@ import (
 	"gopoker/internal/room/table/dealer"
 	"gopoker/pkg/pausabletimer"
 	"gopoker/pkg/ringf"
+	"time"
 
 	"github.com/golang/protobuf/proto"
 
@@ -84,7 +85,6 @@ func (t *Table) Start() {
 }
 
 func (t *Table) kickPlayers() {
-
 	t.players = t.players.Filter(func(player interface{}) bool {
 		// Check if we're kicking the button.
 
@@ -118,17 +118,19 @@ func (t *Table) kickPlayers() {
 	})
 }
 
-func (t *Table) end() {
-	// TODO: Maybe?
+func (t *Table) End() {
+	t.room.BroadcastStatus("GAME OVER")
 }
 
 func (t *Table) NewRound(delay uint32) {
+	// TODO: Maybe?
+	<-time.NewTimer(pausabletimer.MsToDuration(int64(delay))).C
 	// Remove all the necessary people
 	t.kickPlayers()
 
 	// If there's less than 2 people, end the game.
 	if t.players.Len() < 2 {
-		t.end()
+		t.End()
 		return
 	}
 	t.roundState = PREFLOP
@@ -166,9 +168,18 @@ func (t *Table) NextRound() {
 		t.state = RIVER
 	case RIVER:
 		t.Showdown()
+		t.resetPlayers()
 		t.state = PREFLOP
 		t.NewRound(t.opts.GetRoundDelay())
 	}
+
+	t.BroadcastState()
+}
+
+func (t *Table) resetPlayers() {
+	t.players.Do(func(v interface{}) {
+		v.(IPlayer).Reset()
+	})
 }
 
 func (t *Table) SeatPlayer(p IPlayer) error {
@@ -178,12 +189,18 @@ func (t *Table) SeatPlayer(p IPlayer) error {
 	lowest := t.players
 	seat := p.Seat()
 
-	if t.isValidBuyin(p.Balance()) {
+	if !t.isValidBuyin(p.Balance()) {
 		return errors.New("Invalid buyin.")
 	}
 
-	if t.isValidSeat(seat) {
+	if !t.isValidSeat(seat) {
 		return errors.New("Invalid seat, might be taken.")
+	}
+
+	if lowest == nil {
+		t.players = ringf.New(1)
+		t.players.Value = p
+		return nil
 	}
 
 	if seat < lowest.Value.(IPlayer).Seat() {
@@ -241,7 +258,8 @@ func (t *Table) MoveAction() {
 			return
 		}
 
-		if t.action.Next().Value.(IPlayer).IsInHand() {
+		player := t.action.Next().Value.(IPlayer)
+		if player.IsInHand() && !player.IsAllIn() {
 			break
 		}
 		t.action = t.action.Next()
@@ -251,8 +269,19 @@ func (t *Table) MoveAction() {
 }
 
 func (t *Table) validAction(actionType msgpb.ClientActionType) bool {
-	switch actionType {
+	if actionType == msgpb.ClientActionType_FOLD {
+		return true
+	}
 
+	switch t.state {
+	case CHECKABLE:
+		return ((msgpb.ClientActionType_CHECK == actionType) ||
+			(msgpb.ClientActionType_BET == actionType) ||
+			(msgpb.ClientActionType_ALL_IN == actionType))
+	case CALLABLE:
+		return ((msgpb.ClientActionType_CALL == actionType) ||
+			(msgpb.ClientActionType_RAISE == actionType) ||
+			(msgpb.ClientActionType_ALL_IN == actionType))
 	}
 
 	return false
@@ -276,15 +305,17 @@ func (t *Table) Action(p IPlayer, payload proto.Message) {
 		return
 	}
 
+	defer func() {
+		t.actionMux.Unlock()
+	}()
+
 	actionMsg, ok := payload.(*msgpb.ActionMessage)
 
 	if !ok {
-		t.actionMux.Unlock()
 		return
 	}
 
 	if !t.validAction(actionMsg.Action) {
-		t.actionMux.Unlock()
 		t.rejectAction(p, actionMsg.Nonce, "Invalid Action.")
 		return
 	}
@@ -293,20 +324,22 @@ func (t *Table) Action(p IPlayer, payload proto.Message) {
 	case msgpb.ClientActionType_FOLD:
 		p.Fold()
 	case msgpb.ClientActionType_CHECK:
+		// Just ignore, it's a check
 	case msgpb.ClientActionType_CALL:
 		p.MakeBet(t.lastBet)
 	case msgpb.ClientActionType_BET:
 		if p.Balance() < actionMsg.Chips {
 			t.rejectAction(p, actionMsg.Nonce, "Invalid number of chips")
-			t.actionMux.Unlock()
 			return
 		}
 
 		_, bigBlind := t.GetBlinds()
 		if actionMsg.Chips < bigBlind {
-			t.actionMux.Unlock()
+			t.rejectAction(p, actionMsg.Nonce, "Invalid bet, must be at least big blind")
 			return
 		}
+
+		p.MakeBet(actionMsg.Chips)
 	case msgpb.ClientActionType_RAISE:
 
 	case msgpb.ClientActionType_ALL_IN:
@@ -318,7 +351,6 @@ func (t *Table) Action(p IPlayer, payload proto.Message) {
 
 	t.MoveAction()
 	t.BroadcastState()
-	t.actionMux.Unlock()
 	return
 }
 
@@ -327,13 +359,27 @@ func (t *Table) BroadcastState() {
 }
 
 func (t *Table) Showdown() {
-	t.aggressor.Do(func(p interface{}) {
-		player := p.(IPlayer)
+	// Get the players with best hand
+	players := t.dealer.BestHands(t.aggressor)
 
-		if player.IsInHand() {
-			player.ShowHand(t)
-		}
+	// Chop the pot.
+	pot := uint64(0)
+	t.players.Do(func(p interface{}) {
+		pot += p.(IPlayer).InPot()
 	})
+
+	payout := (pot / uint64(len(players)))
+	remainder := pot / uint64(len(players))
+
+	// Show their cards to everyone and update chip count
+	for _, p := range players {
+		p.ShowHand(t.room)
+		p.AddChips(payout)
+	}
+
+	// Give remainder to the most out of position player
+	players[len(players)-1].AddChips(remainder)
+
 }
 
 func (t *Table) GetBlinds() (uint64, uint64) {
@@ -358,7 +404,7 @@ func (t *Table) isValidSeat(seat uint32) bool {
 		return false
 	}
 
-	return false
+	return true
 }
 
 func (t *Table) Expire(delay uint32, cb func()) {

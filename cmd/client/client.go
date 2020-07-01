@@ -20,4 +20,5 @@ func main() {
 
 	go concierge.Start()
 	go server.Run(conf.GetAPIAddress(), idgen, custodian)
+
 }

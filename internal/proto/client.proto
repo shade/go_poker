@@ -72,8 +72,6 @@ message ClientOptions {
     int32 run_twice = 2;
 }
 
-
-
 enum ClientActionType {
     REJECT = 0;
 
