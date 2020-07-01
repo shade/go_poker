@@ -108,7 +108,7 @@ func (d *Dealer) BestHands(seats *ringf.RingF) []IPlayer {
 			return
 		}
 
-		handVal := pokerdeck.Evaluate(append(d.flops[0], d.turns[0], d.rivers[0], left.(pokerdeck.Card), right.(pokerdeck.Card)))
+		handVal := pokerdeck.Evaluate(append(d.Board(), left.(pokerdeck.Card), right.(pokerdeck.Card)))
 
 		if bestHand < handVal {
 			bestHand = handVal
@@ -119,4 +119,21 @@ func (d *Dealer) BestHands(seats *ringf.RingF) []IPlayer {
 	})
 
 	return best
+}
+
+func (d *Dealer) Board() []pokerdeck.Card {
+	return append(d.flops[0], d.turns[0], d.rivers[0])
+}
+
+func (d *Dealer) BoardCards() *msgpb.CardSet {
+	set := &msgpb.CardSet{
+		Cards: []*msgpb.Card{},
+	}
+
+	for _, card := range d.Board() {
+		cardMsg := card.Serialize().(*msgpb.Card)
+		set.Cards = append(set.Cards, cardMsg)
+	}
+
+	return set
 }

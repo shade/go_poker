@@ -59,6 +59,7 @@ type IPlayer interface {
 	InPot() uint64
 	AddChips(uint64)
 	Reset()
+	Serialize() proto.Message
 
 	WatchPlayer(proto.GeneratedEnum, func(IPlayer, proto.Message))
 	IgnorePlayer(proto.GeneratedEnum)

@@ -9,13 +9,11 @@ message Table {
 
     // The set of cards currently on the table. 
     CardSet board_cards = 3;
-    // The number of chips in the pot.
-    int32 pot_size = 4;
-
+    
     // The seat number of the player with the button.
-    int32 button_seat = 5;
+    uint32 button_seat = 5;
     // The seat number of the player who is to act.
-    int32 action_seat = 6;
+    uint32 action_seat = 6;
 }
 
 message TableOptions {

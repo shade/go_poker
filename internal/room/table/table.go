@@ -355,7 +355,24 @@ func (t *Table) Action(p IPlayer, payload proto.Message) {
 }
 
 func (t *Table) BroadcastState() {
-	t.room.Broadcast(&msgpb.ServerPacket{})
+
+	players := []*msgpb.Player{}
+	t.players.Do(func(p interface{}) {
+		players = append(players, p.(IPlayer).Serialize().(*msgpb.Player))
+	})
+
+	t.room.Broadcast(&msgpb.ServerPacket{
+		Event: msgpb.ServerEvent_TABLE_STATE,
+		Payload: &msgpb.ServerPacket_Table{
+			Table: &msgpb.Table{
+				Options:    t.opts,
+				Players:    players,
+				BoardCards: t.dealer.BoardCards(),
+				ButtonSeat: t.button.Value.(IPlayer).Seat(),
+				ActionSeat: t.action.Value.(IPlayer).Seat(),
+			},
+		},
+	})
 }
 
 func (t *Table) Showdown() {
